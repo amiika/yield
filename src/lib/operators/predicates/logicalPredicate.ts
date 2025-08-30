@@ -1,0 +1,15 @@
+import type { Operator } from '../../types';
+
+export const logicalPredicate: Operator = {
+    definition: {
+        exec: function*(s) { const v = s.pop(); s.push(typeof v === 'boolean'); },
+        description: 'Tests if the top element is a boolean.',
+        example: 'true logical?',
+        effect: '[A] -> [bool]'
+    },
+    testCases: [
+        { code: 'true logical?', expected: [true] },
+        { code: 'false logical?', expected: [true] },
+        { code: '1 logical?', expected: [false] },
+    ]
+};
