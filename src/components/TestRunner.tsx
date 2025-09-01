@@ -3,6 +3,7 @@ import { Yield } from '../lib/yield-interpreter';
 import { simpleFormatter, deepEqual } from '../lib/utils';
 import { operatorModules } from '../lib/operators';
 import { HistoryManager } from '../lib/HistoryManager';
+import { audioEngine } from '../lib/audio/AudioEngine';
 import type { TestCase } from '../lib/types';
 
 // --- Helper Functions & Components ---
@@ -251,6 +252,14 @@ export const TestRunner = () => {
     const [isRunning, setIsRunning] = useState(false);
     const [summaryStatus, setSummaryStatus] = useState<SummaryStatus>('idle');
     const [copyButtonText, setCopyButtonText] = useState('Copy Failed Tests');
+
+    // Mute audio engine for tests and restore on unmount
+    useEffect(() => {
+        audioEngine.setMuted(true);
+        return () => {
+            audioEngine.setMuted(false);
+        };
+    }, []);
 
     const runTest = useCallback(async (testCase: TestCase): Promise<TestResult> => {
         const { code, assert, expected, expectedType, expectedDescription } = testCase;

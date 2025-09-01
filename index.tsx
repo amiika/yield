@@ -21,8 +21,13 @@ const ChevronIcon = ({ isExpanded }: { isExpanded: boolean }) => (
     </svg>
 );
 
+// Define props type for CollapsibleSection
+interface CollapsibleSectionProps {
+    section: typeof documentation[0];
+}
+
 // Component for a single collapsible documentation section
-const CollapsibleSection = ({ section }: { section: typeof documentation[0] }) => {
+const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ section }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const sectionId = `section-content-${section.name.replace(/\s+/g, '-')}`;
 

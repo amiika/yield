@@ -57,6 +57,7 @@ class AudioEngine {
     private workletNode: AudioWorkletNode | null = null;
     private isInitialized = false;
     private voiceIdCounter = 0;
+    private isMuted = false;
     
     // Manages named patch definitions
     private patchTemplates = new Map<string, PatchTemplate>();
@@ -73,6 +74,13 @@ class AudioEngine {
             AudioEngine.instance = new AudioEngine();
         }
         return AudioEngine.instance;
+    }
+
+    public setMuted(muted: boolean) {
+        this.isMuted = muted;
+        if (muted) {
+            this.stopAll();
+        }
     }
 
     public async init() {
@@ -101,6 +109,7 @@ class AudioEngine {
     }
 
     public definePatch(name: string, graphQuotation: any[]) {
+        if (this.isMuted) return;
         if (!this.isInitialized) return;
 
         const graph = deepClone(graphQuotation);
@@ -111,6 +120,7 @@ class AudioEngine {
     }
     
     public play(target: string | any[], sourceId?: string): string {
+        if (this.isMuted) return '';
         if (!this.isInitialized || !this.workletNode) return '';
     
         let graphToPlay: any[];
@@ -157,6 +167,7 @@ class AudioEngine {
     }
     
     public ctrl(patchName: string, param: string, value: number): void {
+        if (this.isMuted) return;
         if (!this.isInitialized || !this.workletNode) return;
         const id = this.sourceVoices.get(patchName);
         if (id) {
@@ -167,6 +178,7 @@ class AudioEngine {
     }
 
     public stop(patchName: string): string[] {
+        if (this.isMuted) return [];
         if (!this.isInitialized || !this.workletNode) return [];
         const id = this.sourceVoices.get(patchName);
         if (id) {

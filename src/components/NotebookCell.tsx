@@ -26,8 +26,12 @@ const DebugIcon = () => (
     </svg>
 );
 
+interface NotebookCellProps {
+    cellData: any;
+    compact?: boolean;
+}
 
-export const NotebookCell = ({ cellData, compact = false }) => {
+export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = false }) => {
     const [code, setCode] = useState(cellData.example);
     const [result, setResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
