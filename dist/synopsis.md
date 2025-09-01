@@ -1,12 +1,12 @@
-# Synopsis of Yield language
+# Synopsis of the Yield Language
 
-Yield is a purely functional, concatenative programming language. Whereas most functional languages are based on the application of functions to arguments, Yield is based on the composition of functions as stacks applied to stacks. All functions are a stack of operations, take a stack as an argument and produce a stack as a value.
+Yield is a **concatenative, stack-based** programming language. Instead of writing `add(2, 3)`, you push values onto a shared data stack and then apply an operator: `2 3 +`. This is called Reverse Polish Notation (RPN), and it's used for everything in Yield.
 
-The etymology for the Yield comes from a project to implement yield operator to Joy programming language and eventually evolved into a new language that uses Reverse Polish Notation (RPN) for everything, including defining new operators with the `=` operator. Eventually the ideas and obsessions became uncompatible with the Joy and thus Yield was born.
+The language has only one data structure: the stack. Programs themselves are just lists of operations, called **quotations**, written inside square brackets like `[dup *]`. These quotations can be treated as data or executed by special operators called **combinators**. This approach eliminates the need for named function arguments, leading to a simple and powerful algebra.
 
-In essense, Yield has only one type of data structure, the stack. There is always one main stack and a lot of "shadow" stacks. In a sense, the Yield language is one big pile of shadow stacks. All of the Yield language is stored in dictionary of terms that make up the Yield language and the stored data. There is no difference between data and the programs. 
+There is no difference between data and code. You can define new words in the language's dictionary using the `=` operator. For example, `[dup *] square =` creates a new `square` operator that you can use immediately.
 
-Yield language is only constructed from arrays, spaces and words, which are used to define so called quoted programs. All operator definitions expect quoted programs on top of the stack and execute them in various ways. So, where other functional languages use abstraction and application, Yield uses quotation and combinators. As a result, there are no named formal parameters for functions and different return types, only stacks of inputs and outputs. This gives Yield an exceptionally simple algebra, making its programs minimalistic in structure and obvious to compute.
+While purely functional, Yield introduces a powerful `yield` combinator. This allows for creating stateful generators in a controlled way, making it easy to build sequences, state machines, and other evolving systems with simple, composable blocks.
 
 ## Introduction
 
@@ -30,10 +30,10 @@ Yield is a spiritual successor of Forth and Joy programming languages in both co
 ```
 world hello =
 hello # -> world
-2 1 = # 1 = 2
-1 1 + # 1 + 1 = 4
-- + = # + = -
-1 1 + # 1 = 0
+2 1 = # 1 is 2
+1 1 + # 1 + 1 is 4
+- + = # + is -
+1 1 + # 1 + 1 is now 0
 ```
 
 ## Data Types of Yield
