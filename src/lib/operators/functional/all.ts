@@ -18,10 +18,9 @@ export const all: Operator = {
             s.push(true);
         },
         description: 'Applies a predicate to each member of a list, returning true only if the predicate returns true for all members.',
-        example: '[2 4 6] [2 % 0 ==] all',
         effect: '[L [P]] -> [bool]'
     },
-    testCases: [
+    examples: [
         { code: '[2 4 6] [2 % 0 ==] all', expected: [true] },
         { code: '[2 4 7] [2 % 0 ==] all', expected: [false] },
         { code: '[] [false] all', expected: [true] },

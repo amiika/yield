@@ -11,10 +11,9 @@ export const or: Operator = {
             }
         },
         description: 'Logical OR. Pops A and B, pushes A || B. If both A and B are sets, it pushes their union.',
-        example: 'true false or\n{1 2} {2 3} or',
         effect: '[A B] -> [C]'
     },
-    testCases: [
+    examples: [
         { code: 'true false or', expected: [true] },
         { code: 'false false or', expected: [false] },
         { code: '1 0 or', expected: [1] },

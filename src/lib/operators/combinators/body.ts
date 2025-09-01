@@ -27,10 +27,9 @@ export const body: Operator = {
             }
         },
         description: 'Pushes the body (quotation) of a user-defined function onto the stack. Expects the name of the function as a bare word.',
-        example: '[1 +] inc = inc body',
         effect: '[W] -> [[B]]'
     },
-    testCases: [
+    examples: [
         { code: '[1 +] inc = inc body', expected: [[1, '+']] },
         { code: '[1 2 3] mylist = mylist body', expected: [[1, 2, 3]] },
         { code: '[42] 1 = 1 body', expected: [[42]] },

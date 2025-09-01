@@ -13,10 +13,10 @@ export const regsub: Operator = {
             }
         },
         description: 'Replaces the first occurrence of a regex pattern in a string. `S Pattern Replacement -> S`',
-        example: '"banana" "a" "o" regsub',
         effect: '[S Pattern Replace] -> [S\']'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' for consistency.
+    examples: [
         { code: '"banana" "a" "o" regsub', expected: ["bonana"] },
         { code: '"banana" "an" "o" regsub', expected: ["boana"] },
         { code: '"hello world" "l" "X" regsub', expected: ["heXlo world"] }

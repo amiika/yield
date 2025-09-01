@@ -27,10 +27,9 @@ export const ctrl: Operator = {
             s.push(patchNameSymbol, paramSymbol, value);
         },
         description: 'Controls a parameter of a running audio patch. Consumes the patch name, parameter name, and value, then pushes them back onto the stack.',
-        example: ':my-synth :freq 440 ctrl',
         effect: '[A B C] -> [A B C]'
     },
-    testCases: [
+    examples: [
         { 
             code: ':my-synth :freq 440 ctrl', 
             assert: s => s.length === 3 && 

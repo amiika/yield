@@ -8,10 +8,9 @@ export const ends: Operator = {
             s.push(str.endsWith(suffix)); 
         },
         description: 'Checks if a string ends with the characters of a specified string. `S Suffix -> B`',
-        example: '"hello" "lo" ends',
         effect: '[S Suffix] -> [bool]'
     },
-    testCases: [
+    examples: [
         { code: '"hello" "lo" ends', expected: [true] },
         { code: '"hello world" "world" ends', expected: [true] },
         { code: '"hello world" "hello" ends', expected: [false] }

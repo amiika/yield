@@ -10,10 +10,9 @@ export const dip2: Operator = {
             s.push(x, y);
         },
         description: 'Saves two stack items, executes a program, then restores them.',
-        example: '1 2 [10 20 +] dip2',
         effect: '[X Y [P]] -> [... X Y]'
     },
-    testCases: [
+    examples: [
         { code: '1 2 [10 20 +] dip2', expected: [30, 1, 2] },
         { code: '1 2 [] dip2', expected: [1, 2] },
     ]

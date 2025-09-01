@@ -4,10 +4,10 @@ export const tanh: Operator = {
     definition: {
         exec: function*(s) { s.push(Math.tanh(s.pop())); },
         description: 'Hyperbolic tangent.',
-        example: '1 tanh',
         effect: '[F] -> [G]'
     },
-    testCases: [
+    examples: [
+        { code: '1 tanh', expected: [0.7615941559557649] },
         { code: '0 tanh', expected: [0]}
     ]
 };

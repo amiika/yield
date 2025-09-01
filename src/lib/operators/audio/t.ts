@@ -8,10 +8,10 @@ export const t: Operator = {
             s.push('t');
         },
         description: 'Represents the time variable (sample count) inside a `bytebeat` or `floatbeat` quotation. This operator is only meaningful when used inside a quotation passed to those operators.',
-        example: `time [t 255 &] bytebeat`,
         effect: '-> t'
     },
-    testCases: [
+    // FIX: Renamed `testCases` to `examples` to match the Operator type.
+    examples: [
         { 
             code: 't', 
             expected: ['t']

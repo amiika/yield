@@ -9,10 +9,9 @@ export const nullary: Operator = {
             s.push(...tempStack);
         },
         description: 'Executes a program P, which leaves a result R on the stack. No matter how many parameters P consumes, none are removed from the original stack.',
-        example: '10 20 [1 1 +] nullary',
         effect: '[... [P]] -> [... R]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 [1 1 +] nullary', expected: [10, 20, 2] }
     ]
 };

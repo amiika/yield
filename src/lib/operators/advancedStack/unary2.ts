@@ -16,10 +16,9 @@ export const unary2: Operator = {
             s.push(...tempStack1, ...tempStack2);
         },
         description: 'Executes the same program P on two separate values X1 and X2, returning two results R1 and R2.',
-        example: '10 20 [succ] unary2',
         effect: '[X1 X2 [P]] -> [R1 R2]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 [succ] unary2', expected: [11, 21] }
     ]
 };

@@ -15,10 +15,9 @@ export const filter: Operator = {
             s.push(results);
         },
         description: 'Creates a new list containing only elements for which a program returns true.',
-        example: '[1 2 3 4 5] [2 % 0 ==] filter',
         effect: '[L [P]] -> [L\']'
     },
-    testCases: [
+    examples: [
         { code: '[1 2 3 4 5] [2 % 0 ==] filter', expected: [[2, 4]] },
         { code: '["a" "b" 1 2] [string?] filter', expected: [["a", "b"]] },
     ]

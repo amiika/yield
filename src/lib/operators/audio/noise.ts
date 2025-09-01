@@ -6,14 +6,11 @@ export const noise: Operator = {
             s.push(['noise']);
         },
         description: 'Creates a white noise generator node.',
-        example: "noise 0.2 mul play",
         effect: '[] -> [L_graph]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
+        { code: "noise 0.2 mul play", expected: [['mul', ['noise'], 0.2]] },
         { code: 'noise', expected: [['noise']] },
-        {
-            code: 'noise 0.2 mul',
-            expected: [['mul', ['noise'], 0.2]]
-        }
     ]
 };

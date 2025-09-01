@@ -10,10 +10,9 @@ export const step: Operator = {
             }
         },
         description: 'Applies a program to each element of a list, accumulating results on the main stack.',
-        example: '0 [1 2 3 4] [+] step',
         effect: '[A L [P]] -> ...'
     },
-    testCases: [
+    examples: [
         { code: '0 [1 2 3 4] [+] step', expected: [10] },
         { code: '1 [2 3 4] [*] step', expected: [24] },
     ]

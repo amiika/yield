@@ -4,10 +4,10 @@ export const cos: Operator = {
     definition: {
         exec: function*(s) { s.push(Math.cos(s.pop())); },
         description: 'Cosine.',
-        example: '0.5 cos',
         effect: '[F] -> [G]'
     },
-    testCases: [
+    examples: [
+        { code: '0.5 cos', assert: (s) => s.length === 1 && typeof s[0] === 'number' },
         { code: '0 cos', expected: [1]}
     ]
 };

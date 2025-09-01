@@ -16,10 +16,9 @@ export const fold: Operator = {
             s.push(acc);
         },
         description: 'Starting with an initial value, sequentially applies a program to each member of a list to produce a final value. `A V0 [P] -> V`',
-        example: '[1 2 3 4] 0 [+] fold',
         effect: '[L V [P]] -> [R]'
     },
-    testCases: [
+    examples: [
         { code: '[1 2 3 4] 0 [+] fold', expected: [10] },
         { code: '[2 3 4] 1 [*] fold', expected: [24] },
         { code: '[] 100 [+] fold', expected: [100] },

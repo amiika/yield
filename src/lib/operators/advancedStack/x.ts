@@ -20,10 +20,9 @@ export const x: Operator = {
             s.push(...results);
         },
         description: 'Executes the quotation on top of the stack without popping it. The quotation is applied to the stack below it, and the results are pushed on top.',
-        example: '10 [1 +] x',
         effect: '[X [P]] -> [X [P] R]'
     },
-    testCases: [
+    examples: [
         { code: '10 [1 +] x', expected: [10, [1, '+'], 11] }
     ]
 };

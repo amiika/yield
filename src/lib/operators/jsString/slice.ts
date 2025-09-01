@@ -9,10 +9,9 @@ export const slice: Operator = {
             s.push(str.slice(start, end)); 
         },
         description: 'Extracts a section of a string and returns it as a new string. `S Start End -> S`',
-        example: '"hello world" 0 5 slice',
         effect: '[S I_start I_end] -> [S\']'
     },
-    testCases: [
+    examples: [
         { code: '"hello world" 0 5 slice', expected: ["hello"] },
         { code: '"hello world" 6 11 slice', expected: ["world"] },
         { code: '"abc" 1 1 slice', expected: [""] },

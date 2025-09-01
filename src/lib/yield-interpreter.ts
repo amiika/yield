@@ -1,14 +1,15 @@
 import { operatorModules } from './operators';
-import type { StackValue, YieldOptions, EvaluateFn, OperatorDefinition } from './types';
+import type { StackValue, YieldOptions, EvaluateFn, OperatorDefinition, Operator } from './types';
+import { deepClone } from './utils';
 
 // --- Yield Interpreter Core ---
 export const Yield = (() => {
     'use strict';
     
-    const dictionary: { [key: string]: OperatorDefinition | { body: StackValue[], description: string, example: string } } = {}; 
+    const dictionary: { [key: string]: Operator | { body: StackValue[], description: string, example: string } } = {}; 
     const dictionaryCategories = {};
     const builtInKeys = new Set<string>();
-    const originalBuiltIns: { [key: string]: OperatorDefinition } = {};
+    const originalBuiltIns: { [key: string]: Operator } = {};
     const aliases: { [key: string]: string } = {
         '=': 'popto',
         '<-': 'appendTo'
@@ -20,7 +21,8 @@ export const Yield = (() => {
         const categoryModule = operatorModules[categoryKey];
         const definitions = {};
         for (const opKey in categoryModule.definitions) {
-            definitions[opKey] = categoryModule.definitions[opKey].definition;
+            // Store the full operator object, not just the definition
+            definitions[opKey] = categoryModule.definitions[opKey];
         }
         Object.assign(dictionary, definitions);
         Object.assign(originalBuiltIns, definitions); // Store a pristine copy of built-ins
@@ -32,6 +34,11 @@ export const Yield = (() => {
         };
     }
     Object.keys(dictionary).forEach(key => builtInKeys.add(key));
+
+    const combinatorKeys = new Set([
+        ...Object.keys(operatorModules.combinators.definitions),
+        ...Object.keys(operatorModules.recursion.definitions)
+    ]);
 
     // --- Core Interpreter Logic ---
     const parse = (code: string): StackValue[] => {
@@ -76,89 +83,115 @@ export const Yield = (() => {
     const evaluate: EvaluateFn = function* (program, stack, options = {}) {
         program = Array.isArray(program) ? [...program] : [program];
         
-        while (program.length) {
+        while (program.length > 0) {
             let token = program.shift();
 
-            // Handle aliases
+            // 1. ALIASES
             if (typeof token === 'string' && aliases[token]) {
                 token = aliases[token];
             }
             
+            // 2. DEBUG HOOK
             if (options.isDebug && options.onToken) options.onToken(token, stack);
             
-            // Handle literal strings created by the parser
+            // 3. LITERAL STRINGS
             if (typeof token === 'string' && token.startsWith('\0')) {
                 stack.push(token.slice(1));
                 yield;
                 continue;
             }
 
+            // 4. DECISION POINT: EXECUTE or PUSH AS DATA?
+            // FIX: Corrected the type of `dictKey` from `string | symbol | undefined` to `string | undefined` to match the implementation where symbols are converted to string keys before dictionary access. This resolves the "Type 'symbol' cannot be used as an index type" error.
             let dictKey: string | undefined;
             if (typeof token === 'string' || typeof token === 'number') {
                 dictKey = String(token);
             } else if (typeof token === 'symbol') {
                 const key = Symbol.keyFor(token);
-                if (key) {
-                    dictKey = `:${key}`;
+                if (key) dictKey = `:${key}`;
+            }
+
+            const def = dictKey ? dictionary[dictKey] : undefined;
+            let execute = false;
+
+            if (def) {
+                // It's in the dictionary. Default is to execute.
+                execute = true;
+
+                // --- CONTEXT CHECK (Lookahead) ---
+                // We should NOT execute if the token is being used as data for an upcoming operator.
+                const nameConsumers = new Set(['popto', 'appendTo', 'yield', 'body', 'popstackto']);
+                const assignmentOps = new Set(['popto', 'appendTo', 'popstackto']);
+
+                let nextTokenRaw = program.length > 0 ? program[0] : null;
+                let nextNextTokenRaw = program.length > 1 ? program[1] : null;
+
+                let nextToken = (typeof nextTokenRaw === 'string' && aliases[nextTokenRaw]) ? aliases[nextTokenRaw] : nextTokenRaw;
+                let nextNextToken = (typeof nextNextTokenRaw === 'string' && aliases[nextNextTokenRaw]) ? aliases[nextNextTokenRaw] : nextNextTokenRaw;
+                
+                // Rule 1: The token is a NAME for the next operator. e.g., `... + =`
+                if (nameConsumers.has(nextToken as string)) {
+                    execute = false;
+                }
+                // Rule 2: The token is a VALUE for an operator two steps ahead. e.g., `- + =`
+                else if (assignmentOps.has(nextNextToken as string)) {
+                    execute = false;
                 }
             }
             
-            if (dictKey !== undefined && dictionary[dictKey]) {
-                // A word is a "name consumer" if it's an operator that takes the *name* of a
-                // variable from the stack, rather than its value. This logic checks the *next*
-                // token in the program to see if the current token should be treated as a name.
-                const nameConsumers = new Set(['popto', 'appendTo', 'yield', 'body', 'popstackto']);
-                const nextTokenRaw = program.length > 0 ? program[0] : null;
-                const nextToken = (typeof nextTokenRaw === 'string' && aliases[nextTokenRaw]) ? aliases[nextTokenRaw] : nextTokenRaw;
-                const isNameConsumer = nameConsumers.has(nextToken as string);
-
-                if (isNameConsumer) {
-                    stack.push(token);
-                } else {
-                    const def = dictionary[dictKey];
-                    if ('body' in def) {
-                        // Heuristic: A user-defined word is a function if its body contains a built-in operator.
-                        // This is more robust than the previous check and correctly handles stateful functions.
-                        const isFunction = Array.isArray(def.body) && def.body.flat(Infinity).some(t => {
-                            if (typeof t !== 'string') return false;
-                            const innerDef = dictionary[t];
-                            return !!(innerDef && 'exec' in innerDef);
-                        });
-                        
-                        if (isFunction) {
-                                program.unshift(...def.body);
+            // 5. ACTION
+            if (execute) {
+                if ('definition' in def) { // Built-in
+                    yield* def.definition.exec(stack, options, evaluate, dictionary);
+                } else { // User-defined
+                    // This is the existing, complex but tested heuristic for distinguishing
+                    // functions from variables, which is needed to handle list variables correctly.
+                     const body = def.body;
+                    let isFunction = false;
+                    
+                    if (Array.isArray(body) && body.length > 0) {
+                        const lastToken = body[body.length - 1];
+                        if (typeof lastToken === 'string' && combinatorKeys.has(lastToken)) {
+                            isFunction = true;
                         } else {
-                            // Data variable. The value is the body itself.
-                            // It was parsed, so it may contain literal markers that need cleaning.
-                            const clean = (v) => Array.isArray(v) ? v.map(clean) : (typeof v === 'string' && v.startsWith('\0') ? v.slice(1) : v);
-
-                            // Deep-clone to prevent operators like 'append' from mutating the definition.
-                            const value = JSON.parse(JSON.stringify(def.body));
-                            const cleanedValue = clean(value);
+                            const hasBuiltIn = body.flat(Infinity).some(t => {
+                                if (typeof t !== 'string') return false;
+                                const innerDef = dictionary[t];
+                                return !!(innerDef && 'definition' in innerDef);
+                            });
                             
-                            // Unwrap single-element lists for more intuitive behavior with simple variables.
-                            if (Array.isArray(cleanedValue) && cleanedValue.length === 1 && !Array.isArray(cleanedValue[0])) {
-                                stack.push(cleanedValue[0]);
-                            } else {
-                                stack.push(cleanedValue);
+                            const isSingleOperatorQuotation = body.length === 1 && hasBuiltIn;
+                            
+                            if (hasBuiltIn && !isSingleOperatorQuotation) {
+                                isFunction = true;
                             }
                         }
+                    }
+
+                    if (isFunction) {
+                        program.unshift(...def.body);
                     } else {
-                        // Built-in operator
-                        yield* def.exec(stack, options, evaluate, dictionary);
+                        if (body.length === 1 && (typeof body[0] !== 'object' || body[0] === null)) {
+                            program.unshift(body[0]);
+                        } else {
+                            const value = deepClone(def.body);
+                            const clean = (v) => Array.isArray(v) ? v.map(clean) : (typeof v === 'string' && v.startsWith('\0') ? v.slice(1) : v);
+                            const cleanedValue = clean(value);
+                            stack.push(cleanedValue);
+                        }
                     }
                 }
             } else {
-                 // Any other token (number, list, un-quoted string not in dict) is pushed as data.
-                 // We must clean lists of any internal literal markers before pushing.
-                 if (Array.isArray(token)) {
+                // Push token as data.
+                if (Array.isArray(token)) {
                     const clean = (t) => Array.isArray(t) ? t.map(clean) : (typeof t === 'string' && t.startsWith('\0') ? t.slice(1) : t);
                     stack.push(clean(token));
-                 } else {
+                } else {
                     stack.push(token);
-                 }
+                }
             }
-            yield; 
+            
+            yield;
         }
     };
 

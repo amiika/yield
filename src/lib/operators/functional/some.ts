@@ -18,10 +18,9 @@ export const some: Operator = {
             s.push(false);
         },
         description: 'Applies a predicate to each member of a list, returning true if the predicate returns true for any member.',
-        example: '[1 2 3 4] [3 >] some',
         effect: '[L [P]] -> [bool]'
     },
-    testCases: [
+    examples: [
         { code: '[1 2 3 4] [3 >] some', expected: [true] },
         { code: '[1 2 3 4] [5 >] some', expected: [false] },
         { code: '[] [true] some', expected: [false] },

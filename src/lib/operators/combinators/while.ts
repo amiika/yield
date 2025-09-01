@@ -12,10 +12,9 @@ export const whileOp: Operator = {
             }
         },
         description: 'Executes a body program as long as a test program returns true.',
-        example: '5 [dup 0 >] [1 -] while',
         effect: '[ [B] [D] ] -> ...'
     },
-    testCases: [
+    examples: [
         { code: '5 [dup 0 >] [1 -] while', expected: [0] },
         { code: '0 [false] [pop] while', expected: [0] },
     ]

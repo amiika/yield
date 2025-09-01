@@ -22,47 +22,47 @@ export const yieldOp: Operator = {
             }
             
             const definition = dictionary[dictKey];
-            if (!definition || 'exec' in definition || !Array.isArray(definition.body)) {
+            if (!definition || !('body' in definition) || !Array.isArray(definition.body)) {
                 throw new Error(`yield can only be applied to a user-defined list variable: '${nameForError}'.`);
             }
             
-            // 1. Spread the variable's contents onto a temporary stack.
-            const tempStack = [...definition.body];
-            
-            // 2. Apply the program.
+            // 1. Get a copy of the current state for evolution.
+            const currentStateBody = [...definition.body];
+
+            // 2. Evolve the state for the *next* call.
+            // The temporary stack for evaluation starts with the current state.
+            const tempStack = currentStateBody;
             yield* evaluate(program, tempStack, options);
 
-            // 3. Update the variable with the result.
+            // 3. Update the variable with the result of the evolution.
             dictionary[dictKey] = { ...definition, body: tempStack };
-
-            // 4. Push the new top-of-state to the main stack as the result.
+            
+            // 4. Push the *new* top-of-state to the main stack as the result.
             if (tempStack.length > 0) {
                 s.push(tempStack[tempStack.length - 1]);
             }
         },
-        description: 'A stateful function combinator. Spreads the contents of a named list variable, applies a program to them, updates the variable with the result, and pushes the new top-of-state to the main stack. Syntax: `[program] variable_name yield`.',
-        example: `# Stateful Counter
-[0] counter =
-[ [succ] counter yield ] next =
-next next next`,
-        effect: '[[P] W] -> [T]'
+        description: 'A stateful generator combinator. It applies a program to a named list variable to evolve its state, then pushes the new top value of that variable onto the stack. Syntax: `program_name_or_quotation variable_name yield`.',
+        effect: '[P_name V_name] -> [T]'
     },
-    testCases: [
+    examples: [
         {
             code: [
-                '[0] counter_state =',
-                '[ [succ] counter_state yield ] next =',
+                '0 counter_state =',
+                '[succ] combinator =',
+                '[combinator counter_state yield] next =',
                 'next next next',
             ],
             expected: [1, 2, 3] 
         },
         { 
             code: [
-                '[0 1] fib_state =',
-                '[ [swap dupd +] fib_state yield ] fib =',
+                '0 1 fib_state =',
+                '[swap dupd +] program =',
+                '[program fib_state yield] fib =',
                 'fib fib fib fib fib',
             ],
-            expected: [1, 2, 3, 5, 8]
+            expected: [0, 1, 2, 3, 5, 8]
         },
         {
             code: [
@@ -74,12 +74,44 @@ next next next`,
         {
             code: [
                 '[] :log =',
-                // This pattern prepends to the logical stack by appending to the list representation
-                // e.g., stack [1] -> list [1] -> list [1, 2] -> stack [2, 1] (top is 1)
-                '[ stack 1 append unstack ] :log yield', // state becomes [1], pushes 1
-                '[ stack 2 append unstack ] :log yield'  // state becomes [2, 1], pushes 1
+                '[1] program =',
+                '[program :log yield] logit =',
+                'logit',
+                'logit'
             ],
             expected: [1, 1]
+        },
+        {
+            code: [
+                '0 state =',
+                '[1 +] combinator =',
+                '[combinator state yield] next =',
+                'next next next'
+            ],
+            expected: [1, 2, 3]
+        },
+        {
+            code: [
+                '0 :state =',
+                '[1 +] :combinator =',
+                '[:combinator :state yield] :next =',
+                ':next :next :next'
+            ],
+            expected: [1, 2, 3]
+        },
+        {
+            code: [
+                '[[1 +] [0] yield] next =',
+                'next next next'
+            ],
+            expected: [1, 2, 3]
+        },
+        {
+            code: [
+                '[[1 +] 0 yield] next =',
+                'next next next'
+            ],
+            expected: [1, 2, 3]
         }
     ]
 };

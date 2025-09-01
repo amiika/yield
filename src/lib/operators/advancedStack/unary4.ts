@@ -24,10 +24,9 @@ export const unary4: Operator = {
             s.push(...tempStack1, ...tempStack2, ...tempStack3, ...tempStack4);
         },
         description: 'Executes the same program P on four separate values, returning four results.',
-        example: '10 20 30 40 [succ] unary4',
         effect: '[X1 X2 X3 X4 [P]] -> [R1 R2 R3 R4]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 30 40 [succ] unary4', expected: [11, 21, 31, 41] }
     ]
 };

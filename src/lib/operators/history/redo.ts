@@ -13,7 +13,7 @@ export const redo: Operator = {
                 // Restore dictionary
                 // 1. Clear current user dictionary
                 for (const key in dictionary) {
-                    if (!('exec' in dictionary[key])) {
+                    if ('body' in dictionary[key]) {
                         delete dictionary[key];
                     }
                 }
@@ -22,10 +22,10 @@ export const redo: Operator = {
             }
         },
         description: 'Re-applies an operation that was undone. Can only be used after `undo`.',
-        example: '1 2 + undo redo',
         effect: '[...] -> [...]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
         { 
             code: ['1 2 +', 'undo', 'redo'], 
             expected: [3]

@@ -13,10 +13,9 @@ export const map: Operator = {
             s.push(results);
         },
         description: 'Applies a program to each element of a list, creating a new list of results.',
-        example: '[1 2 3 4] [dup *] map',
         effect: '[L [P]] -> [L\']'
     },
-    testCases: [
+    examples: [
         { code: '[1 2 3 4] [dup *] map', expected: [[1, 4, 9, 16]] },
         { code: '[] [succ] map', expected: [[]] },
     ]

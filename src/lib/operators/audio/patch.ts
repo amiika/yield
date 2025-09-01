@@ -20,19 +20,18 @@ export const patch: Operator = {
             s.push(nameSymbol);
         },
         description: 'Defines a named audio patch from a quotation. The patch can then be played, stopped, and controlled by its name. Pushes the patch name back onto the stack as a result.',
-        example: '[ 60 note saw ] :bass patch',
         effect: '[[Graph]] [Sym_name] -> [Sym_name]'
     },
-    testCases: [
-        { 
-            code: '[440 sine] :my-sine patch', 
-            assert: s => s.length === 1 && typeof s[0] === 'symbol' && Symbol.keyFor(s[0]) === 'my-sine',
-            expectedDescription: '[:my-sine]'
-        },
+    examples: [
         { 
             code: '[ 60 note saw ] :bass patch', 
             assert: s => s.length === 1 && typeof s[0] === 'symbol' && Symbol.keyFor(s[0]) === 'bass',
             expectedDescription: '[:bass]'
+        },
+        { 
+            code: '[440 sine] :my-sine patch', 
+            assert: s => s.length === 1 && typeof s[0] === 'symbol' && Symbol.keyFor(s[0]) === 'my-sine',
+            expectedDescription: '[:my-sine]'
         },
     ]
 };

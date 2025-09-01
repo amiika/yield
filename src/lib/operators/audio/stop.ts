@@ -26,14 +26,14 @@ export const stop: Operator = {
             }
         },
         description: 'Stops a playing audio patch by its name (symbol), then pushes the name back onto the stack. If the stack is empty, it stops all audio (like `hush`).',
-        example: ':my-synth stop',
         effect: '[A]? -> [A]?'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
         { 
-            code: ':some-patch stop', 
-            assert: s => s.length === 1 && typeof s[0] === 'symbol' && Symbol.keyFor(s[0]) === 'some-patch',
-            expectedDescription: '[:some-patch]'
+            code: ':my-synth stop', 
+            assert: s => s.length === 1 && typeof s[0] === 'symbol' && Symbol.keyFor(s[0]) === 'my-synth',
+            expectedDescription: '[:my-synth]'
         },
         { code: 'stop', expected: [] }
     ]

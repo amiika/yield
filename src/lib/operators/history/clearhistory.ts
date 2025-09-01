@@ -11,10 +11,10 @@ export const clearhistory: Operator = {
             }
         },
         description: 'Clears the undo/redo history. The current state becomes the new initial state.',
-        example: '1 2 + clearhistory',
         effect: '[] -> []'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
         { code: '1 2 + clearhistory', expected: [3] },
         { code: '1 2 clearhistory', expected: [1, 2] }
     ]

@@ -11,12 +11,11 @@ export const and: Operator = {
             }
         },
         description: 'Logical AND. Pops A and B, pushes A && B. If both A and B are sets, it pushes their intersection.',
-        example: 'true true and\n{1 2} {2 3} and',
         effect: '[A B] -> [C]'
     },
-    testCases: [
-        { code: 'true false and', expected: [false] },
+    examples: [
         { code: 'true true and', expected: [true] },
+        { code: 'true false and', expected: [false] },
         { code: '1 0 and', expected: [0] },
         { code: '{1 2} {2 3} and', expected: [new Set([2])] }
     ]

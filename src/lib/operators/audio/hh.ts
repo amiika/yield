@@ -29,17 +29,16 @@ export const hh: Operator = {
             s.push(final_sound);
         },
         description: 'Creates a closed hi-hat synth node. If a gate signal is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
-        example: "hh play   # Single hit\n8 impulse hh play # Repeating hit",
         effect: '[L_gate]? -> [L_graph]'
     },
-    testCases: [
+    examples: [
         {
-            code: 'hh',
+            code: 'hh play',
             assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
             expectedDescription: 'A valid audio graph'
         },
         {
-            code: '1 impulse hh',
+            code: '8 impulse hh play',
             assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
             expectedDescription: 'A valid audio graph'
         },

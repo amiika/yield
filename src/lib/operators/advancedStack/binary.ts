@@ -11,10 +11,9 @@ export const binary: Operator = {
             s.push(...tempStack);
         },
         description: 'Executes P with two values X and Y, leaving result R. Exactly two values are removed from the stack.',
-        example: '10 20 30 [+] binary',
         effect: '[... X Y [P]] -> [... R]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 30 [+] binary', expected: [10, 50] }
     ]
 };

@@ -20,10 +20,9 @@ export const unary3: Operator = {
             s.push(...tempStack1, ...tempStack2, ...tempStack3);
         },
         description: 'Executes the same program P on three separate values, returning three results.',
-        example: '10 20 30 [succ] unary3',
         effect: '[X1 X2 X3 [P]] -> [R1 R2 R3]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 30 [succ] unary3', expected: [11, 21, 31] }
     ]
 };

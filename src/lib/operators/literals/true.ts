@@ -4,10 +4,9 @@ export const trueOp: Operator = {
     definition: {
         exec: function*(s) { s.push(true); },
         description: 'Pushes the boolean value `true`.',
-        example: 'true',
         effect: '-> B'
     },
-    testCases: [
+    examples: [
         { code: 'true', expected: [true] }
     ]
 };

@@ -9,10 +9,10 @@ export const hpf: Operator = {
             s.push(['hpf', input, cutoff, resonance]);
         },
         description: 'Applies a high-pass filter to an audio signal node.',
-        example: "noise 2000 0.2 hpf play",
         effect: '[L_graph F_cutoff F_resonance] -> [L_graph]'
     },
-    testCases: [
-        { code: "noise 2000 0.2 hpf", expected: [['hpf', ['noise'], 2000, 0.2]] },
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
+        { code: "noise 2000 0.2 hpf play", expected: [['hpf', ['noise'], 2000, 0.2]] },
     ]
 };

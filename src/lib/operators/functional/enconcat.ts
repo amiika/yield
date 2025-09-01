@@ -10,10 +10,9 @@ export const enconcat: Operator = {
             s.push([...l1, e, ...l2]); 
         },
         description: 'Concatenates two sequences with an element inserted between them. `S T X -> U`',
-        example: '[1 2] [3 4] 0 enconcat',
         effect: '[L1 L2 E] -> [L3]'
     },
-    testCases: [
+    examples: [
         { code: '[1 2] [3 4] 0 enconcat', expected: [[1, 2, 0, 3, 4]] },
         { code: '["a"] ["b"] "-" enconcat', expected: [["a", "-", "b"]] },
     ]

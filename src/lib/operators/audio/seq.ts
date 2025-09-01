@@ -11,14 +11,10 @@ export const seq: Operator = {
             s.push(['seq', clock, ...list]);
         },
         description: 'Creates a step sequencer node. Steps through the list of values on each tick of the clock signal.',
-        example: "4 impulse [60 64 67 72] seq note sine play",
         effect: '[L_clock L_values] -> [L_graph]'
     },
-    testCases: [
+    examples: [
+        { code: "4 impulse [60 64 67 72] seq note sine play", expected: [['sine', ['note', ['seq', ['impulse', 4], 60, 64, 67, 72]]]] },
         { code: "4 impulse [60 64 67] seq", expected: [['seq', ['impulse', 4], 60, 64, 67]] },
-        {
-            code: '4 impulse [60 64 67 72] seq note sine',
-            expected: [['sine', ['note', ['seq', ['impulse', 4], 60, 64, 67, 72]]]]
-        }
     ]
 };

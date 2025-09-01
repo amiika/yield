@@ -4,10 +4,9 @@ export const inOp: Operator = {
     definition: {
         exec: function*(s) { const a = s.pop(), x = s.pop(); s.push(a.includes(x)); },
         description: 'Tests if a list contains an element. Infix form.',
-        example: '2 [1 2 3] in',
         effect: '[X A] -> [bool]'
     },
-    testCases: [
+    examples: [
         { code: '2 [1 2 3] in', expected: [true] },
         { code: '4 [1 2 3] in', expected: [false] },
     ]

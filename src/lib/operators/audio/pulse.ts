@@ -8,14 +8,11 @@ export const pulse: Operator = {
             s.push(['pulse', freq, duty]);
         },
         description: 'Creates a pulse wave oscillator node.',
-        example: "440 0.25 pulse 0.5 mul play",
         effect: '[F_freq F_duty] -> [L_graph]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
+        { code: "440 0.25 pulse 0.5 mul play", expected: [['mul', ['pulse', 440, 0.25], 0.5]] },
         { code: '440 0.25 pulse', expected: [['pulse', 440, 0.25]] },
-        {
-            code: '440 0.25 pulse 0.5 mul',
-            expected: [['mul', ['pulse', 440, 0.25], 0.5]]
-        }
     ]
 };

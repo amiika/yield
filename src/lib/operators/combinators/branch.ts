@@ -13,10 +13,9 @@ export const branch: Operator = {
             }
         },
         description: 'If the boolean B is true, executes T, otherwise executes F.',
-        example: '10 5 > ["Greater"] ["Not Greater"] branch',
         effect: '[B [T] [F]] -> ...'
     },
-    testCases: [
+    examples: [
         { code: '10 5 > ["Greater"] ["Not Greater"] branch', expected: ["Greater"] },
         { code: '5 10 > ["Greater"] ["Not Greater"] branch', expected: ["Not Greater"] }
     ]

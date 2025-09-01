@@ -8,10 +8,9 @@ export const ifte: Operator = {
             yield* evaluate(s.pop() ? t : f, s, options);
         },
         description: 'If-then-else. [B] [T] [F] ifte. If B is true, executes T, else executes F.',
-        example: 'true [1] [2] ifte',
         effect: '[B [T] [F]] -> ...'
     },
-    testCases: [
+    examples: [
         { code: 'true [1] [2] ifte', expected: [1] },
         { code: 'false [1] [2] ifte', expected: [2] },
         { code: '1 0 > ["yes"] ["no"] ifte', expected: ["yes"] },

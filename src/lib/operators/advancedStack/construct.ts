@@ -29,10 +29,9 @@ export const construct: Operator = {
             s.push(...allResults);
         },
         description: 'Saves the stack, executes a setup program [P], then executes each program in a list of constructor programs [[P1] [P2]..] on the saved stack, collecting the single result from each.',
-        example: `10 20 [pop] [[dup] [succ]] construct`,
         effect: '[S [P] [[P1]..]] -> [S R1 R2 ..]'
     },
-    testCases: [
-        { code: '10 20 [pop] [[dup] [succ]] construct', expected: [10, 20, 20, 21] }
+    examples: [
+        { code: `10 20 [pop] [[dup] [succ]] construct`, expected: [10, 20, 20, 21] }
     ]
 };

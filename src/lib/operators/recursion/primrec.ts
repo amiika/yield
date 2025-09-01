@@ -30,10 +30,9 @@ export const primrec: Operator = {
             yield* primrec_recursive(data, options);
         },
         description: 'Primitive recursion. Executes [I] for 0 or empty list. For N > 0, executes N-1 primrec, then combines with N via [C]. For lists, recurses on rest, then combines with first via [C].',
-        example: '5 [1] [*] primrec  # Factorial\n[1 2 3] 0 [+] primrec # Sum',
         effect: '[X [I] [C]] -> [R]'
     },
-    testCases: [
+    examples: [
         { 
             code: '5 [1] [*] primrec', 
             expected: [120] 

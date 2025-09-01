@@ -14,9 +14,14 @@ for (const category of Object.values(operatorModules)) {
 const getOperator = (name: string): any => {
     const op = allOperators[name];
     if (!op) throw new Error(`Operator '${name}' not found for documentation.`);
+    
+    const exampleCode = op.examples[0].code;
+    const example = Array.isArray(exampleCode) ? exampleCode.join('\n') : exampleCode;
+    
     return {
         name: name,
-        ...op.definition
+        ...op.definition,
+        example: example
     };
 };
 
@@ -50,7 +55,6 @@ const notebookStructure = [
     { name: "Bytebeat & Floatbeat" },
     { name: "Type & Conversion", category: "types" },
     { name: "Recursive Combinators", category: "recursion" },
-    { name: "JS Math Bridge", category: "jsmath" },
 ];
 
 // Dynamically generate the full documentation object for the UI.

@@ -11,10 +11,10 @@ export const emit: Operator = {
             }
         },
         description: 'Outputs the top of the stack to the REPL.',
-        example: 'hello emit',
         effect: '[S] -> []'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' for consistency.
+    examples: [
         { code: '"Hello" emit', expected: [] }
     ]
 };

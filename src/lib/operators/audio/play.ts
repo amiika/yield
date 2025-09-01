@@ -1,5 +1,6 @@
 import type { Operator } from '../../types';
 import { audioEngine } from '../../audio/AudioEngine';
+import { deepEqual, simpleFormatter } from '../../utils';
 
 export const play: Operator = {
     definition: {
@@ -26,17 +27,17 @@ export const play: Operator = {
             s.push(target); // Push back
         },
         description: 'Plays an audio graph from the stack, then pushes it back onto the stack. If given a graph (list), it plays it anonymously. If given a name (symbol), it plays the corresponding named patch.',
-        example: ':my-synth play',
         effect: '[A] -> [A]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
         { 
             code: [
                 '[60 note saw] :test-patch patch',
-                'play'
+                ':test-patch play'
             ],
-            assert: s => s.length === 1 && typeof s[0] === 'symbol' && Symbol.keyFor(s[0]) === 'test-patch',
-            expectedDescription: '[:test-patch]'
+            assert: s => deepEqual(s.map(simpleFormatter), [':test-patch', ':test-patch']),
+            expectedDescription: '[:test-patch :test-patch]'
         },
         {
             code: '[440 sine] play',

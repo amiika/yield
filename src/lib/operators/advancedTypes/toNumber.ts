@@ -8,10 +8,9 @@ export const toNumber: Operator = {
             s.push(isNaN(num) ? 0 : num);
         },
         description: 'Parses a string into a number. Returns 0 if the string cannot be parsed.',
-        example: '"123.45" toNumber',
         effect: '[S] -> [N]'
     },
-    testCases: [
+    examples: [
         { code: '"123.45" toNumber', expected: [123.45] },
         { code: '"-10" toNumber', expected: [-10] },
         { code: '"hello" toNumber', expected: [0] },

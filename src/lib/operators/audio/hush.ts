@@ -7,10 +7,9 @@ export const hush: Operator = {
             audioEngine.stopAll();
         },
         description: 'Stops all currently playing audio voices immediately.',
-        example: 'hush',
         effect: '[] -> []'
     },
-    testCases: [
+    examples: [
         { code: 'hush', expected: [] }
     ]
 };

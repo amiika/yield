@@ -16,14 +16,13 @@ export interface TestCase {
 export interface OperatorDefinition {
     exec: (stack: StackValue[], options: YieldOptions, evaluate: EvaluateFn, dictionary: { [key: string]: any }) => Generator;
     description: string;
-    example: string;
     effect: string;
 }
 
 // The complete operator object, including its tests
 export interface Operator {
     definition: OperatorDefinition;
-    testCases: TestCase[];
+    examples: TestCase[];
 }
 
 // A category of operators

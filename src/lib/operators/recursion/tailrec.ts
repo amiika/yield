@@ -23,17 +23,12 @@ export const tailrec: Operator = {
             yield* tailrec_recursive(options);
         },
         description: 'Tail recursion. Executes [T]est. If true, executes [Th]en. Else executes [R]ecurse and loops. `[... [T] [Th] [R]] tailrec`',
-        example: `# Factorial (tail-recursive)
-# Stack state is [N Acc]
-[ [swap popd dup 1 <=] [popd] [dupd swapd * swap pred swap] tailrec ] fac =
-
-5 1 fac`,
         effect: '[... [T] [Th] [R]] -> [...]'
     },
-    testCases: [
+    examples: [
         { 
             code: [
-                `# Tail-recursive factorial setup`,
+                `# Factorial (tail-recursive)`,
                 `# Stack state is [N Acc]`,
                 `[ [swap popd dup 1 <=] [popd] [dupd swapd * swap pred swap] tailrec ] fac =`,
                 `5 1 fac`

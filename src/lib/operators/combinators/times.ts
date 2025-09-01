@@ -14,11 +14,19 @@ export const times: Operator = {
             }
         },
         description: 'Executes a program a specific number of times.',
-        example: `10 [2 *] 3 times`,
         effect: '[X N [P]] -> [...]'
     },
-    testCases: [
+    examples: [
         { code: '10 [2 *] 3 times', expected: [80] },
         { code: '0 [succ] 5 times', expected: [5] },
+                {
+            code: [
+                '0 state =',
+                '[1 +] combinator =',
+                '[combinator state yield] next =',
+                '[next] 3 times'
+            ],
+            expected: [1, 2, 3]
+        }
     ]
 };

@@ -34,19 +34,15 @@ export const condlinrec: Operator = {
             yield* condlinrec_recursive(options);
         },
         description: 'Conditional linear recursion. Takes a list of cases `[[B T] or [B R1 R2]...]`. Finds the first true B. If a `[T]` branch, executes T. If a `[R1 R2]` branch, executes R1, recurses, then executes R2.',
-        example: `# Factorial with condlinrec
+        effect: '[... [Cases]] -> [...]'
+    },
+    examples: [
+        { 
+            code: `# Factorial with condlinrec
 5 [ 
     [ [dup 0 ==] [pop 1] ]
     [ [true] [dup pred] [*] ]
-] condlinrec`,
-        effect: '[... [Cases]] -> [...]'
-    },
-    testCases: [
-        { 
-            code: `5 [ 
-                [ [dup 0 ==] [pop 1] ]
-                [ [true] [dup pred] [*] ]
-            ] condlinrec`, 
+] condlinrec`, 
             expected: [120] 
         },
         {

@@ -28,10 +28,9 @@ export const binrec: Operator = {
             s.push(...result);
         },
         description: 'Binary recursion combinator, useful for divide-and-conquer.',
-        example: '# First, define fib using binrec\n[ [2 <] [] [dup pred swap pred pred] [+] binrec ] fib =\n\n# Now, call it\n8 fib',
         effect: '...'
     },
-    testCases: [
-        { code: '[ [2 <] [] [dup pred swap pred pred] [+] binrec ] fib = 8 fib', expected: [21] }
+    examples: [
+        { code: [ '[ [2 <] [] [dup pred swap pred pred] [+] binrec ] fib =', '8 fib' ], expected: [21] }
     ]
 };

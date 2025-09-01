@@ -8,10 +8,9 @@ export const starts: Operator = {
             s.push(str.startsWith(prefix)); 
         },
         description: 'Checks if a string starts with the characters of a specified string. `S Prefix -> B`',
-        example: '"hello" "he" starts',
         effect: '[S Prefix] -> [bool]'
     },
-    testCases: [
+    examples: [
         { code: '"hello" "he" starts', expected: [true] },
         { code: '"hello world" "hello" starts', expected: [true] },
         { code: '"hello world" "world" starts', expected: [false] }

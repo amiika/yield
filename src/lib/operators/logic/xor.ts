@@ -13,12 +13,11 @@ export const xor: Operator = {
             }
         },
         description: 'Logical XOR. Pops A and B, pushes A ^ B. If both A and B are sets, it pushes their symmetric difference.',
-        example: 'true true xor\n{1 2} {2 3} xor',
         effect: '[A B] -> [C]'
     },
-    testCases: [
-        { code: 'true false xor', expected: [true] },
+    examples: [
         { code: 'true true xor', expected: [false] },
+        { code: 'true false xor', expected: [true] },
         { code: '1 0 xor', expected: [true] },
         { code: '{1 2} {2 3} xor', expected: [new Set([1, 3])] }
     ]

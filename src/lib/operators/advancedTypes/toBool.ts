@@ -4,10 +4,9 @@ export const toBool: Operator = {
     definition: {
         exec: function*(s) { s.push(!!s.pop()); },
         description: 'Converts the top value on the stack to its boolean equivalent (using standard JavaScript truthiness).',
-        example: '1 toBool',
         effect: '[A] -> [B]'
     },
-    testCases: [
+    examples: [
         { code: '1 toBool', expected: [true] },
         { code: '0 toBool', expected: [false] },
         { code: '"" toBool', expected: [false] },

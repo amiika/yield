@@ -13,10 +13,9 @@ export const cleave: Operator = {
             s.push(...s1, ...s2);
         },
         description: 'Applies two programs to the same value, leaving both results on the stack.',
-        example: '10 [dup *] [1 +] cleave',
         effect: '[X [P1] [P2]] -> [R1 R2]'
     },
-    testCases: [
+    examples: [
         { code: '10 [dup *] [1 +] cleave', expected: [100, 11] },
         { code: '[1 2] [size] [first] cleave', expected: [2, 1] },
     ]

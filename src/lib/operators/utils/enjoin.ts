@@ -13,10 +13,10 @@ export const enjoin: Operator = {
             s.push(result);
         },
         description: 'Joins all elements on the stack (except the separator at the top) into a single string, separated by the given separator.',
-        example: '1 2 3 "-" enjoin',
         effect: '[A B C ... S] -> [S\']'
     },
-    testCases: [
+    // FIX: Renamed `testCases` to `examples` to match the Operator type.
+    examples: [
         { code: '1 2 3 "-" enjoin', expected: ["1-2-3"] },
         { code: '"hello" "world" " " enjoin', expected: ["hello world"] },
         { code: '1 2 3 "" enjoin', expected: ["123"] },

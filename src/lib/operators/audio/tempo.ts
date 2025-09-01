@@ -10,10 +10,10 @@ export const tempo: Operator = {
             s.push(newTempo);
         },
         description: 'Sets the global tempo in Beats Per Minute (BPM), then pushes the tempo value back onto the stack.',
-        example: '120 tempo',
         effect: '[N_bpm] -> [N_bpm]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
         { code: '120 tempo', expected: [120] }
     ]
 };

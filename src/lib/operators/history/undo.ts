@@ -13,7 +13,7 @@ export const undo: Operator = {
                 // Restore dictionary
                 // 1. Clear current user dictionary
                 for (const key in dictionary) {
-                    if (!('exec' in dictionary[key])) {
+                    if ('body' in dictionary[key]) {
                         delete dictionary[key];
                     }
                 }
@@ -22,10 +22,10 @@ export const undo: Operator = {
             }
         },
         description: 'Reverts the stack and all user-defined words to their state before the last operation. Can be called multiple times.',
-        example: '1 2 + dup undo',
         effect: '[...] -> [...]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' for consistency.
+    examples: [
         { 
             code: ['1 2 +', 'dup', 'undo'],
             assert: s => s.length === 1 && s[0] === 3,

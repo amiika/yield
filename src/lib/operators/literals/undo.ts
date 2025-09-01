@@ -22,10 +22,10 @@ export const undo: Operator = {
             }
         },
         description: 'Reverts the stack and all user-defined words to their state before the last operation. Can be called multiple times.',
-        example: '1 2 + dup undo',
         effect: '[...] -> [...]'
     },
-    testCases: [
+    // FIX: Renamed `testCases` to `examples` to match the Operator type.
+    examples: [
         { code: '1 2 + undo', assert: s => s.length === 2 && s[0] === 1 && s[1] === 2 }
     ]
 };

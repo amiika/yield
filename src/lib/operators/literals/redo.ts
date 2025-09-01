@@ -22,10 +22,10 @@ export const redo: Operator = {
             }
         },
         description: 'Re-applies an operation that was undone. Can only be used after `undo`.',
-        example: '1 2 + undo redo',
         effect: '[...] -> [...]'
     },
-    testCases: [
+    // FIX: Renamed `testCases` to `examples` to match the Operator type.
+    examples: [
         { code: '1 2 + undo redo', assert: s => s.length === 1 && s[0] === 3 }
     ]
 };

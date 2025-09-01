@@ -8,10 +8,9 @@ export const distort: Operator = {
             s.push(['distort', input, amount]);
         },
         description: 'Applies distortion to an audio signal node.',
-        example: "220 saw 0.8 distort 0.5 mul play",
         effect: '[L_graph F_amount] -> [L_graph]'
     },
-    testCases: [
-        { code: "220 saw 0.8 distort", expected: [['distort', ['saw', 220], 0.8]] },
+    examples: [
+        { code: "220 saw 0.8 distort 0.5 mul play", expected: [['mul', ['distort', ['saw', 220], 0.8], 0.5]] },
     ]
 };

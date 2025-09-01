@@ -24,7 +24,7 @@ export const appendTo: Operator = {
 
             if (!definition) {
                 // If it doesn't exist, create it as a list with the value.
-                dictionary[dictKey] = { body: [value], description: "User-defined variable.", example: `... ${nameForError} appendTo` };
+                dictionary[dictKey] = { body: [value], description: "User-defined variable.", effect: '... -> ...' };
             } else if ('body' in definition) {
                 if (!Array.isArray(definition.body)) {
                     throw new Error(`Cannot append to non-list definition: '${nameForError}'. Use 'popto' or '=' to overwrite.`);
@@ -37,16 +37,15 @@ export const appendTo: Operator = {
             }
         },
         description: 'Pops a value and a name, then appends the value to the list variable associated with the name. Creates the variable if it does not exist. Alias: `<-`.',
-        example: '[] mylist = \n10 mylist appendTo\n20 mylist <-',
         effect: '[... V N] -> [...]'
     },
-    testCases: [
+    examples: [
         {
             code: [
-                '[] mylog =',
-                '10 mylog appendTo',
-                '20 mylog <-', // Using the alias
-                'mylog'
+                '[] mylist =',
+                '10 mylist appendTo',
+                '20 mylist <-',
+                'mylist'
             ],
             expected: [[10, 20]]
         },
@@ -63,7 +62,7 @@ export const appendTo: Operator = {
                 '42 :mynum <-', // Should create :mynum with body [42]
                 ':mynum'
             ],
-            expected: [42] // The interpreter unwraps single-element lists
+            expected: [42]
         }
     ]
 };

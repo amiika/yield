@@ -63,7 +63,6 @@ interface TestItem {
 type SummaryStatus = 'idle' | 'running' | 'success' | 'failure';
 
 // --- Test Case Runner Component ---
-// FIX: Removed unused `onUpdate` prop to resolve type error as it's not passed down.
 const TestCaseRunner = ({ item, onRun, onToggleExpand }) => {
     const [code, setCode] = useState(Array.isArray(item.currentTest.code) ? item.currentTest.code.join('\n') : item.currentTest.code);
     const [expected, setExpected] = useState(expectedToString(item.currentTest.expected));
@@ -91,7 +90,7 @@ const TestCaseRunner = ({ item, onRun, onToggleExpand }) => {
         } else if (item.currentTest.expectedType) {
             expectedOutputStr = `A value of type: ${item.currentTest.expectedType}`;
         } else if (item.currentTest.assert) {
-            expectedOutputStr = 'Custom assertion logic';
+            expectedOutputStr = `Custom assertion: ${item.currentTest.assert.toString()}`;
         }
 
         const textToCopy = `Implement this test for ${item.description}
@@ -118,12 +117,12 @@ ${expectedOutputStr}`;
         let expectedOutputStr = '';
         if (item.currentTest.expected !== undefined) {
             expectedOutputStr = `[ ${expectedToString(item.currentTest.expected)} ]`;
+        } else if (item.currentTest.assert) {
+            expectedOutputStr = `(assert) ${item.currentTest.assert.toString()}`;
         } else if (item.currentTest.expectedDescription) {
             expectedOutputStr = item.currentTest.expectedDescription;
         } else if (item.currentTest.expectedType) {
             expectedOutputStr = `A value of type: ${item.currentTest.expectedType}`;
-        } else if (item.currentTest.assert) {
-            expectedOutputStr = 'Custom assertion logic';
         }
         
         const textToCopy = `--- Yield Test Failure ---
@@ -200,15 +199,22 @@ ${item.result.actualOutput || 'N/A'}`;
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">Expected Stack:</label>
-                            <input
-                                type="text"
-                                value={isAssertTest ? '' : expected}
-                                onChange={(e) => setExpected(e.target.value)}
-                                disabled={isAssertTest}
-                                placeholder={isAssertTest ? 'Custom assertion in code' : 'e.g., 10 "hello"'}
-                                className="w-full p-2 rounded text-sm fira-code border border-gray-300 disabled:bg-gray-100 focus:ring-indigo-500 focus:border-indigo-500"
-                            />
+                            <label className="block text-sm font-medium text-gray-600 mb-1">
+                                {isAssertTest ? 'Expected (Assertion):' : 'Expected Stack:'}
+                            </label>
+                            {isAssertTest ? (
+                                <pre className="w-full p-2 rounded text-sm fira-code border bg-gray-100 overflow-x-auto">
+                                    <code>{item.originalTest.assert.toString()}</code>
+                                </pre>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={expected}
+                                    onChange={(e) => setExpected(e.target.value)}
+                                    placeholder={'e.g., 10 "hello"'}
+                                    className="w-full p-2 rounded text-sm fira-code border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            )}
                             {item.result.status !== 'passed' && (
                                 <div className="mt-2 text-sm">
                                     <p className="fira-code text-gray-700">
@@ -299,7 +305,7 @@ export const TestRunner = () => {
 
         const allTestCases = Object.values(operatorModules).flatMap((category, catIndex) =>
             Object.entries(category.definitions).flatMap(([opName, op]) =>
-                op.testCases.map((testCase: TestCase, testIndex: number) => ({
+                op.examples.map((testCase: TestCase, testIndex: number) => ({
                     id: `${category.name}-${opName}-${testIndex}`,
                     description: `${category.name}: ${opName}`,
                     originalTest: testCase,
@@ -350,10 +356,19 @@ export const TestRunner = () => {
     const handleCopyFailedTests = () => {
         const failedCode = failedTests.map(item => {
 const codeForDisplay = Array.isArray(item.currentTest.code) ? item.currentTest.code.join('\n') : item.currentTest.code;
-const expectedOutputStr = `[ ${expectedToString(item.currentTest.expected)} ]`;
+
+let expectedOutputStr = 'N/A';
+if (item.currentTest.expected !== undefined) {
+    expectedOutputStr = `[ ${expectedToString(item.currentTest.expected)} ]`;
+} else if (item.currentTest.assert) {
+    expectedOutputStr = `(assert) ${item.currentTest.assert.toString()}`;
+} else if (item.currentTest.expectedDescription) {
+    expectedOutputStr = item.currentTest.expectedDescription;
+}
+
 return `# --- TEST FAILED: ${item.description} ---
 # Reason: ${item.result.errorMessage}
-# Expected: ${expectedOutputStr || 'N/A'}
+# Expected: ${expectedOutputStr}
 # Got:   ${item.result.actualOutput || 'N/A'}
 ${codeForDisplay}`
         }).join('\n\n');

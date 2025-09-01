@@ -19,6 +19,16 @@ import { history } from './history/index';
 import { audio } from './audio/index';
 import type { Category } from '../types';
 
+// Merge the jsMath category into the main math category for a better user experience.
+const mergedMathCategory: Category = {
+    name: "Mathematical & Bitwise Operators",
+    description: "Performing arithmetic, bitwise, and common mathematical functions.",
+    definitions: {
+        ...math.definitions,
+        ...jsMath.definitions,
+    }
+};
+
 // This is the single source of truth for the entire operator library.
 // The interpreter, documentation, and test runner all build from this.
 export const operatorModules: { [key: string]: Category } = {
@@ -26,8 +36,7 @@ export const operatorModules: { [key: string]: Category } = {
     'stack': stack,
     'advancedStack': advancedStack,
     'logic': logic,
-    'math': math,
-    'jsmath': jsMath,
+    'math': mergedMathCategory,
     'jsString': jsString,
     'types': types,
     'advancedTypes': advancedTypes,

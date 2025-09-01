@@ -6,6 +6,7 @@ import { NotebookCell } from './src/components/NotebookCell';
 import { TestRunner } from './src/components/TestRunner';
 import { ReferencePage } from './src/components/ReferencePage';
 import { audioEngine } from './src/lib/audio/AudioEngine';
+import { SynopsisPage } from './src/components/SynopsisPage';
 
 // Icon for collapsible sections
 const ChevronIcon = ({ isExpanded }: { isExpanded: boolean }) => (
@@ -88,6 +89,8 @@ const App = () => {
 
     const renderPage = () => {
         switch (route) {
+            case '#/synopsis':
+                return <SynopsisPage />;
             case '#/reference':
                 return <ReferencePage />;
             case '#/tutorial':
@@ -105,6 +108,7 @@ const App = () => {
     
     // Updated active state logic
     const isRepl = ['#/repl', '#', '#/', ''].includes(route);
+    const isSynopsis = route === '#/synopsis';
     const isReference = route === '#/reference';
     const isTests = route === '#/tests';
     const isTutorial = route === '#/tutorial';
@@ -117,6 +121,7 @@ const App = () => {
                 <nav className="mt-4 space-x-4">
                     {/* Reordered and renamed tabs */}
                     <a href="#/repl" onClick={(e) => handleNavClick(e, '#/repl')} className={`text-indigo-600 hover:underline ${isRepl ? 'font-bold' : ''}`}>REPL</a>
+                    <a href="#/synopsis" onClick={(e) => handleNavClick(e, '#/synopsis')} className={`text-indigo-600 hover:underline ${isSynopsis ? 'font-bold' : ''}`}>Synopsis</a>
                     <a href="#/reference" onClick={(e) => handleNavClick(e, '#/reference')} className={`text-indigo-600 hover:underline ${isReference ? 'font-bold' : ''}`}>Reference</a>
                     <a href="#/tutorial" onClick={(e) => handleNavClick(e, '#/tutorial')} className={`text-indigo-600 hover:underline ${isTutorial ? 'font-bold' : ''}`}>Tutorial</a>
                     <a href="#/tests" onClick={(e) => handleNavClick(e, '#/tests')} className={`text-indigo-600 hover:underline ${isTests ? 'font-bold' : ''}`}>Test Suite</a>

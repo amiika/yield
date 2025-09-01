@@ -141,8 +141,10 @@ export const Repl = () => {
                 const commandDef = Yield.dictionary[topic];
                 const categoryDef = Yield.dictionaryCategories[topic];
 
-                if (commandDef && 'description' in commandDef) {
-                    output = `${commandDef.description}\n\nExample:\n  ${commandDef.example}`;
+                if (commandDef && 'definition' in commandDef) {
+                    const exampleCode = commandDef.examples?.[0]?.code;
+                    const exampleStr = exampleCode ? (Array.isArray(exampleCode) ? exampleCode.join('\n') : exampleCode) : null;
+                    output = `${commandDef.definition.description}${exampleStr ? `\n\nExample:\n  ${exampleStr}` : ''}`;
                 } else if (categoryDef) {
                     const commands = Object.keys(categoryDef.definitions);
                     output = `--- ${categoryDef.name} ---\n`;

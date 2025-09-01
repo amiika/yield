@@ -89,10 +89,10 @@ export const bytebeat: Operator = {
             s.push(['bytebeat', jsCode]);
         },
         description: 'Bytebeat node. Consumes a quotation which is a stack-based formula that is transpiled into a high-performance JavaScript expression. This expression is evaluated for every audio sample. The special operator `t` is implicitly available in the quotation and represents the current time in samples. The integer result of the formula is wrapped to 8 bits (0-255) and converted to an audio signal (-1 to 1). Supported operators: `+ - * / % >> << & | ^ ~ sin cos tan pow sqrt abs floor ceil round > < >= <= == !=`. Relational operators return 1 for true and 0 for false.',
-        example: `[ t 10000 % 256 < t * ] bytebeat 0.3 mul play`,
         effect: '[[Quotation]] -> [L_graph]'
     },
-    testCases: [
+    // FIX: Renamed `testCases` to `examples` to match the Operator type.
+    examples: [
         { 
             code: `[t 255 &] bytebeat`, 
             expected: [['bytebeat', '(t & 255)']] 

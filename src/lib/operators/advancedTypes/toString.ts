@@ -13,10 +13,9 @@ export const stringOp: Operator = {
             }
         },
         description: 'Converts the top value on the stack to its string representation.',
-        example: '123 string',
         effect: '[A] -> [S]'
     },
-    testCases: [
+    examples: [
         { code: '123 string', expected: ["123"] },
         { code: 'true string', expected: ["true"] },
         { code: '[1 2 3] string', expected: ["[1 2 3]"] },

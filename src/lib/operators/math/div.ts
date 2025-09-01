@@ -9,10 +9,9 @@ export const div: Operator = {
             s.push(Math.floor(a / b), a % b); 
         },
         description: 'Integer division. Pushes quotient and remainder.',
-        example: '21 10 div',
         effect: '[I J] -> [K L]'
     },
-    testCases: [
+    examples: [
         { code: '21 10 div', expected: [2, 1] },
         { code: '-21 10 div', expected: [-3, -1] },
         // Test stack underflow

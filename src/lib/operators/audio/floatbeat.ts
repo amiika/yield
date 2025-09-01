@@ -90,10 +90,10 @@ export const floatbeat: Operator = {
             s.push(['floatbeat', jsCode]);
         },
         description: 'Floatbeat node. Consumes a quotation which is a stack-based formula that is transpiled into a high-performance JavaScript expression. This expression is evaluated for every audio sample. The special operator `t` is implicitly available in the quotation and represents the current time in samples. The float result is used directly as an audio sample and should be in the -1 to 1 range. Supported operators: `+ - * / % >> << & | ^ ~ sin cos tan pow sqrt abs floor ceil round > < >= <= == !=`. Relational operators return 1 for true and 0 for false.',
-        example: `[ t 44100 / 440 * 2 * 3.14159 * sin ] floatbeat`,
         effect: '[[Quotation]] -> [L_graph]'
     },
-    testCases: [
+    // FIX: Renamed `testCases` to `examples` to match the Operator type.
+    examples: [
         { 
             code: `[t 44100 / 440 * 2 * 3.14159 * sin] floatbeat`, 
             expected: [['floatbeat', 'Math.sin(((((t / 44100) * 440) * 2) * 3.14159))']] 

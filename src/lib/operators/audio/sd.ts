@@ -30,17 +30,16 @@ export const sd: Operator = {
             s.push(final_sound);
         },
         description: 'Creates a snare drum synth node. If a gate signal is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
-        example: "sd play   # Single hit\n2 impulse sd play # Repeating hit",
         effect: '[L_gate]? -> [L_graph]'
     },
-    testCases: [
+    examples: [
         { 
-            code: 'sd', 
+            code: 'sd play', 
             assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
             expectedDescription: 'A valid audio graph'
         },
         { 
-            code: '1 impulse sd', 
+            code: '2 impulse sd play', 
             assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
             expectedDescription: 'A valid audio graph'
         },

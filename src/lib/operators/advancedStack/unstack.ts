@@ -11,10 +11,9 @@ export const unstack: Operator = {
             s.push(...[...list].reverse());
         },
         description: 'The list becomes the new stack. The first element of the list is the top of the new stack.',
-        example: '1 2 [10 20 30] unstack',
         effect: '[... [L]] -> [..]'
     },
-    testCases: [
+    examples: [
         { code: '1 2 [10 20 30] unstack', expected: [30, 20, 10] }
     ]
 };

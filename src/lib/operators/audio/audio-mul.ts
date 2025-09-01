@@ -8,10 +8,9 @@ export const mul: Operator = {
             s.push(['mul', a, b]);
         },
         description: 'Multiplies two audio signals (or a signal and a number for gain).',
-        example: "440 sine 0.5 mul play",
         effect: '[L_graphA L_graphB_or_F] -> [L_graph]'
     },
-    testCases: [
-        { code: "440 sine 0.5 mul", expected: [['mul', ['sine', 440], 0.5]] },
+    examples: [
+        { code: "440 sine 0.5 mul play", expected: [['mul', ['sine', 440], 0.5]] },
     ]
 };

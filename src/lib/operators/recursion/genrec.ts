@@ -25,10 +25,9 @@ export const genrec: Operator = {
             yield* genrec_recursive(options);
         },
         description: 'General recursion. `[B] [T] [R1] [R2] genrec`. Executes B. If true, executes T. Else, executes R1, pushes the recursive call, then executes R2.',
-        example: '# Factorial with genrec\n[dup 0 ==] [pop 1] [dup pred] [i *] genrec',
         effect: '[... [B] [T] [R1] [R2]] -> [...]'
     },
-    testCases: [
+    examples: [
         { 
             code: '5 [ [dup 0 <=] [pop 1] [dup pred] [i *] genrec ] i',
             expected: [120] 

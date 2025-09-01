@@ -15,10 +15,9 @@ export const infra: Operator = {
             s.push([...tempStack].reverse());
         },
         description: 'Using list L1 as a temporary stack, executes program P and returns a new list L2. The first element of L1 is the top of the stack.',
-        example: '[10 20] [dup *] infra',
         effect: '[L1 [P]] -> [L2]'
     },
-    testCases: [
+    examples: [
         { code: '[10 20] [dup *] infra', expected: [[100, 20]] }
     ]
 };

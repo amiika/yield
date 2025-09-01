@@ -27,11 +27,10 @@ export const linrec: Operator = {
             s.push(...result);
         },
         description: 'Linear recursion combinator.',
-        example: '[[null?] [succ] [dup pred] [*] linrec] fac = 5 fac',
         effect: '...'
     },
-    testCases: [
-        { code: '5 [[null?] [succ] [dup pred] [*] linrec] i', expected: [120] },
+    examples: [
         { code: '[[null?] [succ] [dup pred] [*] linrec] fac = 5 fac', expected: [120] },
+        { code: '5 [[null?] [succ] [dup pred] [*] linrec] i', expected: [120] },
     ]
 };

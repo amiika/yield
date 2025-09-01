@@ -10,10 +10,9 @@ export const unary: Operator = {
             s.push(...tempStack);
         },
         description: 'Executes P with one value X, leaving result R. Exactly one value is removed from the stack.',
-        example: '10 20 [1 +] unary',
         effect: '[... X [P]] -> [... R]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 [1 +] unary', expected: [10, 21] }
     ]
 };

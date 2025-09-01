@@ -9,10 +9,9 @@ export const dip: Operator = {
             s.push(v);
         },
         description: 'Saves the top element, executes a program, then restores the element.',
-        example: '10 [20 30 +] dip',
         effect: '[A [P]] -> [A]'
     },
-    testCases: [
+    examples: [
         { code: '10 [20 30 +] dip', expected: [50, 10] },
         { code: '1 [2 3 +] dip [4 5 +] dip', expected: [5, 9, 1] },
     ]

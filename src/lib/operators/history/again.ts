@@ -30,10 +30,10 @@ export const again: Operator = {
             }
         },
         description: 'Re-executes the last command from the history that was not "again".',
-        example: '1 2 + # pushes 3\nagain # re-runs "1 2 +". stack becomes [3 3]',
         effect: '[...] -> [...]'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
+    examples: [
         {
             code: ['1 2 +', 'again'],
             expected: [3, 3]

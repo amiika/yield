@@ -12,10 +12,9 @@ export const ternary: Operator = {
             s.push(...tempStack);
         },
         description: 'Executes P with three values X, Y, and Z, leaving result R. Exactly three values are removed from the stack.',
-        example: '10 20 30 40 [+ *] ternary',
         effect: '[... X Y Z [P]] -> [... R]'
     },
-    testCases: [
+    examples: [
         { code: '10 20 30 40 [+ *] ternary', expected: [10, 1400] }
     ]
 };

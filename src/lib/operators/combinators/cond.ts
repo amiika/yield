@@ -22,10 +22,9 @@ export const cond: Operator = {
             }
         },
         description: 'Executes the program for the first true condition. The last element is the default case.',
-        example: '2 [[ [1 ==] [pop "one"] ] [ [2 ==] [pop "two"] ] [ [pop "other"] ]] cond',
         effect: '[V [ [C1 T1] .. [D] ]] -> ...'
     },
-    testCases: [
+    examples: [
         { code: '2 [[ [1 ==] [pop "one"] ] [ [2 ==] [pop "two"] ] [ [pop "other"] ]] cond', expected: ["two"] },
         { code: '3 [[ [1 ==] [pop "one"] ] [ [2 ==] [pop "two"] ] [ [pop "other"] ]] cond', expected: ["other"] },
     ]

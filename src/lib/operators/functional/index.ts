@@ -7,6 +7,8 @@ import { fold } from './fold';
 import { split } from './split';
 import { some } from './some';
 import { all } from './all';
+import { powerlist } from './powerlist';
+import { swoncat } from './swoncat';
 import type { Category } from '../../types';
 
 export const functional: Category = {
@@ -14,6 +16,7 @@ export const functional: Category = {
     description: "Higher-order functions for list processing and advanced aggregate manipulation.",
     definitions: {
         swons,
+        swoncat,
         enconcat,
         unswons,
         equal,
@@ -22,5 +25,6 @@ export const functional: Category = {
         split,
         some,
         all,
+        powerlist,
     }
 };

@@ -10,10 +10,10 @@ export const cr: Operator = {
             }
         },
         description: 'Outputs a newline to the REPL.',
-        example: 'cr',
         effect: '[] -> []'
     },
-    testCases: [
+    // FIX: Renamed 'testCases' to 'examples' for consistency.
+    examples: [
         { code: 'cr', expected: [] }
     ]
 };
