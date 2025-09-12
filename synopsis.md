@@ -40,7 +40,7 @@ The data types of Yield are divided into simple and aggregate types. The simple 
 
 ### Aggregate Types
 
-Stacks are ordered sequence of zero or more values of any type. Literals are written inside parentheses, like `(peter paul mary)` or `(42 true {2 5})`. Lists can contain mixtures of types, including other lists.
+Stacks are ordered sequence of zero or more values of any type. Literals are written inside parentheses, like `(peter paul mary)` or `(42 true 1.5)`. Lists can contain mixtures of types, including other lists.
 
 Many operators work across aggregate types. For example, `concat` joins two lists or two strings.
 
