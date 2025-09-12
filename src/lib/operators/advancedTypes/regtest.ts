@@ -11,7 +11,6 @@ export const regtest: Operator = {
                 throw new Error(`Invalid RegExp pattern: ${pattern}`);
             }
         },
-        // FIX: Added missing properties to satisfy OperatorDefinition type.
         description: 'Tests if a string matches a regular expression. `S Pattern -> B`',
         effect: '[S Pattern] -> [bool]'
     },

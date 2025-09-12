@@ -30,7 +30,7 @@ export const linrec: Operator = {
         effect: '...'
     },
     examples: [
-        { code: '[[null?] [succ] [dup pred] [*] linrec] fac = 5 fac', expected: [120] },
-        { code: '5 [[null?] [succ] [dup pred] [*] linrec] i', expected: [120] },
+        { code: '((null?) (succ) (dup pred) (*) linrec) fac => 5 fac', expected: [120] },
+        { code: '5 ((null?) (succ) (dup pred) (*) linrec) i', expected: [120] },
     ]
 };

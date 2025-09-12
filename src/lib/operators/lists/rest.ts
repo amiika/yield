@@ -7,7 +7,7 @@ export const rest: Operator = {
         effect: '[A] -> [R]'
     },
     examples: [
-        { code: '[10 20 30] rest', expected: [[20, 30]] },
-        { code: '[10] rest', expected: [[]] },
+        { code: '(10 20 30) rest', expected: [[20, 30]] },
+        { code: '(10) rest', expected: [[]] },
     ]
 };

@@ -1,7 +1,6 @@
 import { swons } from './swons';
 import { enconcat } from './enconcat';
 import { unswons } from './unswons';
-import { equal } from './equal';
 import { leaf } from './leaf';
 import { fold } from './fold';
 import { split } from './split';
@@ -19,7 +18,6 @@ export const functional: Category = {
         swoncat,
         enconcat,
         unswons,
-        equal,
         leaf,
         fold,
         split,

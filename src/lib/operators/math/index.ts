@@ -18,6 +18,7 @@ import { bitwiseXor } from './bitwiseXor';
 import { bitwiseNot } from './bitwiseNot';
 import { leftShift } from './leftShift';
 import { rightShift } from './rightShift';
+import { average } from './average';
 import type { Category } from '../../types';
 
 export const math: Category = {
@@ -38,11 +39,12 @@ export const math: Category = {
         neg,
         abs,
         sign,
+        average,
         '&': bitwiseAnd,
         '|': bitwiseOr,
         '^': bitwiseXor,
         '~': bitwiseNot,
         '<<': leftShift,
-        '>>': rightShift,
+        '>>': rightShift
     }
 };

@@ -19,6 +19,6 @@ export const unary2: Operator = {
         effect: '[X1 X2 [P]] -> [R1 R2]'
     },
     examples: [
-        { code: '10 20 [succ] unary2', expected: [11, 21] }
+        { code: '10 20 (succ) unary2', expected: [11, 21] }
     ]
 };

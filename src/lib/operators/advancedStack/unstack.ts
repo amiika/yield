@@ -14,6 +14,6 @@ export const unstack: Operator = {
         effect: '[... [L]] -> [..]'
     },
     examples: [
-        { code: '1 2 [10 20 30] unstack', expected: [30, 20, 10] }
+        { code: '1 2 (10 20 30) unstack', expected: [30, 20, 10] }
     ]
 };

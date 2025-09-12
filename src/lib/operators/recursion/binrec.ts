@@ -31,6 +31,6 @@ export const binrec: Operator = {
         effect: '...'
     },
     examples: [
-        { code: [ '[ [2 <] [] [dup pred swap pred pred] [+] binrec ] fib =', '8 fib' ], expected: [21] }
+        { code: [ '( (2 <) () (dup pred swap pred pred) (+) binrec ) fib =>', '8 fib' ], expected: [21] }
     ]
 };

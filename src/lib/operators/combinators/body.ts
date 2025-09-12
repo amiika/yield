@@ -30,9 +30,9 @@ export const body: Operator = {
         effect: '[W] -> [[B]]'
     },
     examples: [
-        { code: '[1 +] inc = inc body', expected: [[1, '+']] },
-        { code: '[1 2 3] mylist = mylist body', expected: [[1, 2, 3]] },
-        { code: '[42] 1 = 1 body', expected: [[42]] },
-        { code: '["hi"] :msg = :msg body', expected: [['hi']] },
+        { code: '(1 +) inc = inc body', expected: [[1, '+']] },
+        { code: '(1 2 3) mylist = mylist body', expected: [[1, 2, 3]] },
+        { code: '(42) 1 = 1 body', expected: [[42]] },
+        { code: '("hi") :msg = :msg body', expected: [['hi']] },
     ]
 };

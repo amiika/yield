@@ -24,15 +24,14 @@ export const undo: Operator = {
         description: 'Reverts the stack and all user-defined words to their state before the last operation. Can be called multiple times.',
         effect: '[...] -> [...]'
     },
-    // FIX: Renamed 'testCases' to 'examples' for consistency.
     examples: [
         { 
-            code: ['1 2 +', 'dup', 'undo'],
+            replCode: ['1 2 +', 'dup', 'undo'],
             assert: s => s.length === 1 && s[0] === 3,
             expectedDescription: '[3]'
         },
         { 
-            code: ['100', '1 2 +', 'undo'], 
+            replCode: ['100', '1 2 +', 'undo'], 
             expected: [100]
         }
     ]

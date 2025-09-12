@@ -18,7 +18,7 @@ export const filter: Operator = {
         effect: '[L [P]] -> [L\']'
     },
     examples: [
-        { code: '[1 2 3 4 5] [2 % 0 ==] filter', expected: [[2, 4]] },
-        { code: '["a" "b" 1 2] [string?] filter', expected: [["a", "b"]] },
+        { code: '(1 2 3 4 5) (2 % 0 ==) filter', expected: [[2, 4]] },
+        { code: '("a" "b" 1 2) (string?) filter', expected: [["a", "b"]] },
     ]
 };

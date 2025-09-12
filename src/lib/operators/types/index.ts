@@ -1,5 +1,6 @@
 import { ord } from './ord';
 import { chr } from './chr';
+import { set } from './set';
 import type { Category } from '../../types';
 
 export const types: Category = {
@@ -8,5 +9,6 @@ export const types: Category = {
     definitions: {
         ord,
         chr,
+        set,
     }
 };

@@ -1,4 +1,5 @@
-import type { Operator } from '../../types';
+
+import type { Operator, StackValue } from '../../types';
 
 export const popto: Operator = {
     definition: {
@@ -17,86 +18,29 @@ export const popto: Operator = {
             }
             
             const value = s.pop();
-            
-            // All assignments create a user-defined word with a body.
-            let body = Array.isArray(value) ? value : [value];
 
-            // --- Metaprogramming for `yield` shorthands ---
-            // The order of these transformations is important.
-
-            // Step 1: Inline user-defined words used as programs for `yield`.
-            // This transforms `[program state yield]` into `[[swap dupd +] state yield]`.
-            if (body.length > 2 && body[body.length - 1] === 'yield') {
-                const programArg = body[body.length - 3];
-                let programBodyToInline = null;
-
-                if (typeof programArg === 'string') {
-                    const def = dictionary[programArg];
-                    if (def && 'body' in def) {
-                        programBodyToInline = def.body;
-                    }
-                } else if (typeof programArg === 'symbol') {
-                    const key = Symbol.keyFor(programArg);
-                    if (key) {
-                        const dictKey = `:${key}`;
-                        const def = dictionary[dictKey];
-                        if (def && 'body' in def) {
-                            programBodyToInline = def.body;
-                        }
-                    }
-                }
-                
-                if (programBodyToInline) {
-                    const newBody = [...body];
-                    newBody[body.length - 3] = programBodyToInline; // Replace the name with its actual body (quotation).
-                    body = newBody; // Update the working copy of the body for the next step.
-                }
-            }
-
-            // Step 2: Create hidden state variables for literal states.
-            // This transforms `[prog [0] yield]` or `[prog 0 yield]` into `[prog :hidden_state yield]`.
-            // It can also act on the result of Step 1.
-            if (body.length > 1 && body[body.length - 1] === 'yield') {
-                const stateArg = body[body.length - 2];
-                
-                // A state argument is considered a literal if it's an array or a number, but not a symbol.
-                // String arguments are treated as variable names and are not handled here.
-                const isLiteralState = ! (typeof stateArg === 'symbol') && (Array.isArray(stateArg) || typeof stateArg === 'number');
-
-                if (isLiteralState) {
-                    const stateSymbol = Symbol.for(dictKey);
-                    const stateSymbolKey = `:${dictKey}`;
-
-                    // The body of the new state variable must be a list. Wrap if necessary.
-                    const stateBody = Array.isArray(stateArg) ? stateArg : [stateArg];
-
-                    // Define a new variable in the dictionary to hold the initial state.
-                    dictionary[stateSymbolKey] = {
-                        body: stateBody,
-                        description: `Auto-generated state for '${dictKey}'`,
-                        effect: '... -> ...'
-                    };
-                    // Modify the function's body to refer to this new state variable by its symbol.
-                    const newBody = [...body];
-                    newBody[body.length - 2] = stateSymbol;
-                    body = newBody; // Final update to the body.
-                }
-            }
-            
+            // The '=' operator is now for data only. It performs a simple assignment.
+            // All special logic for generators has been moved to the '=>' (quote) operator.
             dictionary[dictKey] = {
-                body: body,
+                body: value,
                 description: "User-defined function/variable.",
-                effect: '... -> ...'
+                example: "",
             };
         },
-        description: 'Pops a value and a name, then assigns the value to the name. If the value is the name of an existing operator, an alias is created. Alias: `=`. `... V N popto`',
+        description: 'Pops a value and a name, then assigns the value to the name in the dictionary. This is used to define data variables. Alias: `=`. `... V N popto`',
         effect: '[... V N] -> [...]'
     },
-    // FIX: Renamed `testCases` to `examples` to match the Operator type.
     examples: [
         { 
-            code: ['[1 2 3 4] mylist =', 'mylist'],
+            // A variable holding a list should push the list, not spread it.
+            replCode: ['(1 2 3 4) mylist =', 'mylist'],
+            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0].length === 4,
             expected: [[1, 2, 3, 4]] 
+        },
+        {
+            // `my_three` body will be the number 3.
+            replCode: ['1 2 + my_three =', 'my_three'],
+            expected: [3]
         },
         {
             code: [
@@ -111,6 +55,11 @@ export const popto: Operator = {
                 '1'
             ],
             expected: [100]
+        },
+        {
+            // A word defined with '=' should push its body quotation, not execute it.
+            replCode: ['(1 2 +) my_func =', 'my_func'],
+            expected: [[1, 2, '+']]
         }
     ]
 };

@@ -1,4 +1,4 @@
-import { unitlist } from './unitlist';
+import { wrap } from './wrap';
 import { second } from './second';
 import { third } from './third';
 import { shunt } from './shunt';
@@ -12,7 +12,7 @@ export const utils: Category = {
     name: "Utility Operators",
     description: "General-purpose helper operators.",
     definitions: {
-        unitlist,
+        wrap,
         second,
         third,
         shunt,

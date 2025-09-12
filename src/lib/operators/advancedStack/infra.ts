@@ -18,6 +18,6 @@ export const infra: Operator = {
         effect: '[L1 [P]] -> [L2]'
     },
     examples: [
-        { code: '[10 20] [dup *] infra', expected: [[100, 20]] }
+        { code: '(10 20) (dup *) infra', expected: [[100, 20]] }
     ]
 };

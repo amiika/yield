@@ -14,7 +14,6 @@ export const clearall: Operator = {
         description: 'Clears the stack and removes all user-defined words from the dictionary.',
         effect: '[...] -> []'
     },
-    // FIX: Renamed 'testCases' to 'examples' for consistency.
     examples: [
         { code: '[1+] inc = 1 2 3 clearall stack', expected: [[]] },
         { code: '1 2 3 clearall', expected: [] },

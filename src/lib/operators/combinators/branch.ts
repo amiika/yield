@@ -16,7 +16,7 @@ export const branch: Operator = {
         effect: '[B [T] [F]] -> ...'
     },
     examples: [
-        { code: '10 5 > ["Greater"] ["Not Greater"] branch', expected: ["Greater"] },
-        { code: '5 10 > ["Greater"] ["Not Greater"] branch', expected: ["Not Greater"] }
+        { code: '10 5 > ("Greater") ("Not Greater") branch', expected: ["Greater"] },
+        { code: '5 10 > ("Greater") ("Not Greater") branch', expected: ["Not Greater"] }
     ]
 };

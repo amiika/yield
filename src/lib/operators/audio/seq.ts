@@ -1,3 +1,5 @@
+
+
 import type { Operator } from '../../types';
 
 export const seq: Operator = {
@@ -14,7 +16,6 @@ export const seq: Operator = {
         effect: '[L_clock L_values] -> [L_graph]'
     },
     examples: [
-        { code: "4 impulse [60 64 67 72] seq note sine play", expected: [['sine', ['note', ['seq', ['impulse', 4], 60, 64, 67, 72]]]] },
-        { code: "4 impulse [60 64 67] seq", expected: [['seq', ['impulse', 4], 60, 64, 67]] },
+        { code: "4 impulse (60 64 67 72) seq note sine play", expected: [['sine', ['note', ['seq', ['impulse', 4], 60, 64, 67, 72]]]] },
     ]
 };

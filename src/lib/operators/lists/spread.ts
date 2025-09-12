@@ -7,7 +7,7 @@ export const spread: Operator = {
         effect: '[[A B]] -> [A B]'
     },
     examples: [
-        { code: '[10 20 30] spread', expected: [10, 20, 30] },
-        { code: '[] spread', expected: [] },
+        { code: '(10 20 30) spread', expected: [10, 20, 30] },
+        { code: '() spread', expected: [] },
     ]
 };

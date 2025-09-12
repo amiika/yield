@@ -29,40 +29,39 @@ export const again: Operator = {
                 yield* evaluate(program, stack, options);
             }
         },
-        description: 'Re-executes the last command from the history that was not "again".',
+        description: 'Re-executes the last command from the history that was not "again". NOTE: Works only in REPL and line by line execution.',
         effect: '[...] -> [...]'
     },
-    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
     examples: [
         {
-            code: ['1 2 +', 'again'],
+            replCode: ['1 2 +', 'again'],
             expected: [3, 3]
         },
         {
-            code: ['5 dup *', 'again'],
+            replCode: ['5 dup *', 'again'],
             expected: [25, 25]
         },
         {
-            code: ['1', 'again', 'again'],
+            replCode: ['1', 'again', 'again'],
             expected: [1, 1, 1]
         },
         // Should not infinitely recurse when 'again' is part of a command with no prior history.
         {
-            code: ['1 1 + again'],
+            replCode: ['1 1 + again'],
             expected: [2],
         },
         // Should correctly execute the previous command when 'again' is part of the current command.
         {
-            code: ['10 20 +', '1 again'],
+            replCode: ['10 20 +', '1 again'],
             expected: [30, 1, 30],
         },
         // Should do nothing if 'again' is in the very first command.
         {
-            code: ['1 again'],
+            replCode: ['1 again'],
             expected: [1],
         },
         {
-            code: ['[1] mylist =', '1 mylist <-', 'again', 'mylist' ],
+            replCode: ['(1) mylist =', '1 mylist <-', 'again', 'mylist' ],
             expected: [[1, 1, 1]]
         }
     ]

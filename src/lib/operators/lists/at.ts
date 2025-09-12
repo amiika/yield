@@ -7,7 +7,7 @@ export const at: Operator = {
         effect: '[A I] -> [X]'
     },
     examples: [
-        { code: '[10 20 30] 1 at', expected: [20] },
+        { code: '(10 20 30) 1 at', expected: [20] },
         { code: '"hello" 4 at', expected: ["o"] },
     ]
 };

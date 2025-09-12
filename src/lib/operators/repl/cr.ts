@@ -12,7 +12,6 @@ export const cr: Operator = {
         description: 'Outputs a newline to the REPL.',
         effect: '[] -> []'
     },
-    // FIX: Renamed 'testCases' to 'examples' for consistency.
     examples: [
         { code: 'cr', expected: [] }
     ]

@@ -30,7 +30,7 @@ export const tailrec: Operator = {
             code: [
                 `# Factorial (tail-recursive)`,
                 `# Stack state is [N Acc]`,
-                `[ [swap popd dup 1 <=] [popd] [dupd swapd * swap pred swap] tailrec ] fac =`,
+                `( (swap popd dup 1 <=) (popd) (dupd swapd * swap pred swap) tailrec ) fac =>`,
                 `5 1 fac`
             ], 
             expected: [120] 
@@ -38,8 +38,8 @@ export const tailrec: Operator = {
         {
             code: [
                 `# Find the last element of a list`,
-                `[ [rest null?] [first] [rest] tailrec ] last =`,
-                `[1 2 3 4 5] last`
+                `( (rest null?) (first) (rest) tailrec ) last =>`,
+                `(1 2 3 4 5) last`
             ],
             expected: [5]
         }

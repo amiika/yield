@@ -15,6 +15,6 @@ export const ternary: Operator = {
         effect: '[... X Y Z [P]] -> [... R]'
     },
     examples: [
-        { code: '10 20 30 40 [+ *] ternary', expected: [10, 1400] }
+        { code: '10 20 30 40 (+ *) ternary', expected: [10, 1400] }
     ]
 };

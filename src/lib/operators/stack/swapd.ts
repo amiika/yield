@@ -8,6 +8,6 @@ export const swapd: Operator = {
     },
     examples: [
         { code: '10 20 30 swapd', expected: [20, 10, 30] },
-        { code: '1 [2] 3 swapd', expected: [[2], 1, 3] },
+        { code: '1 (2) 3 swapd', expected: [[2], 1, 3] },
     ]
 };

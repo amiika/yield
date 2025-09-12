@@ -34,11 +34,11 @@ export const primrec: Operator = {
     },
     examples: [
         { 
-            code: '5 [1] [*] primrec', 
+            code: '5 (1) (*) primrec', 
             expected: [120] 
         },
         { 
-            code: '[1 2 3 4] 0 [+] primrec', 
+            code: '(1 2 3 4) 0 (+) primrec', 
             expected: [10] 
         }
     ]

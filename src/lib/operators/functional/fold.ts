@@ -19,8 +19,8 @@ export const fold: Operator = {
         effect: '[L V [P]] -> [R]'
     },
     examples: [
-        { code: '[1 2 3 4] 0 [+] fold', expected: [10] },
-        { code: '[2 3 4] 1 [*] fold', expected: [24] },
-        { code: '[] 100 [+] fold', expected: [100] },
+        { code: '(1 2 3 4) 0 (+) fold', expected: [10] },
+        { code: '(2 3 4) 1 (*) fold', expected: [24] },
+        { code: '() 100 (+) fold', expected: [100] },
     ]
 };

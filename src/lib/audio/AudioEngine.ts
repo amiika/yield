@@ -1,79 +1,81 @@
+
 import { prelude } from './prelude';
 import { deepClone } from '../utils';
 
-// Maps operator names to the names of their parameters by index.
-const paramNameMaps: { [key: string]: string[] } = {
-    sine: ['freq'],
-    saw: ['freq'],
-    pulse: ['freq', 'duty'],
-    lpf: ['cutoff', 'resonance'],
-    hpf: ['cutoff', 'resonance'],
-    ad: ['gate', 'attack', 'decay'],
-    adsr: ['gate', 'attack', 'decay', 'sustain', 'release'],
-    delay: ['time', 'feedback'],
-    distort: ['amount'],
-    pan: ['pos'],
-    mul: ['gain'],
-    note: ['note'],
-    seq: ['clock'],
-    impulse: ['freq'],
-};
-
+// FIX: Define missing PatchTemplate interface and analyzeAndBuildTemplate function.
 interface PatchTemplate {
     graph: any[];
-    params: { [key: string]: number };
+    params: { [key: string]: any };
 }
 
-function analyzeAndBuildTemplate(graph: any, template: PatchTemplate, paramCounters: { [key: string]: number }) {
-    if (!Array.isArray(graph)) return;
+const analyzeAndBuildTemplate = (graphNode: any, template: PatchTemplate, counters: { [key: string]: number }) => {
+    if (!Array.isArray(graphNode)) return;
 
-    const op = graph[0] as string;
-    const args = graph.slice(1);
-    const opHasNoParams = ['seq'].includes(op);
-    const paramNames = paramNameMaps[op] || [];
-
-    for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-        if (typeof arg === 'number' && !opHasNoParams && paramNames[i]) {
-            const baseParamName = paramNames[i];
-            const count = paramCounters[baseParamName] = (paramCounters[baseParamName] || 0) + 1;
-            
-            // First instance of a param gets a clean name (e.g., "cutoff").
-            // Subsequent instances get indexed (e.g., "cutoff_1", "cutoff_2").
-            const paramName = count === 1 ? baseParamName : `${baseParamName}_${count - 1}`;
-
-            template.params[paramName] = arg;
-            graph[i + 1] = { param: paramName }; // Mutate graph to use param reference
-        } else if (Array.isArray(arg)) {
-            analyzeAndBuildTemplate(arg, template, paramCounters);
+    for (let i = 0; i < graphNode.length; i++) {
+        const item = graphNode[i];
+        if (typeof item === 'symbol') {
+            const paramName = Symbol.keyFor(item);
+            if (paramName) {
+                // If a parameter with this name hasn't been seen, add it to the template's params.
+                if (!template.params.hasOwnProperty(paramName)) {
+                    template.params[paramName] = 0; // default value is not super important
+                }
+                // Replace the symbol with a parameter object for the worklet.
+                graphNode[i] = { param: paramName };
+            }
+        } else if (Array.isArray(item)) {
+            analyzeAndBuildTemplate(item, template, counters);
         }
     }
-}
+};
 
 
 class AudioEngine {
     private static instance: AudioEngine;
     private context: AudioContext | null = null;
     private workletNode: AudioWorkletNode | null = null;
+    private clockNode: AudioWorkletNode | null = null;
     private isInitialized = false;
+    private initPromise: Promise<void> | null = null;
+    private readyPromise: Promise<void>;
+    private resolveReady!: () => void;
     private voiceIdCounter = 0;
     private isMuted = false;
+    private readyListeners: (() => void)[] = [];
+    private startTime = 0;
     
-    // Manages named patch definitions
-    private patchTemplates = new Map<string, PatchTemplate>();
+    private scheduledCallbacks = new Map<string, { time: number, callback: (tickTime: number) => Promise<void> }>();
+    
     // Tracks active sounds, mapping a source identifier (patch name or cell ID) to an internal voice ID
     private sourceVoices = new Map<string, string>();
 
-
-    public tempo = 80;
-
-    private constructor() {}
+    private constructor() {
+        this.readyPromise = new Promise(resolve => {
+            this.resolveReady = resolve;
+        });
+    }
 
     public static getInstance(): AudioEngine {
         if (!AudioEngine.instance) {
             AudioEngine.instance = new AudioEngine();
         }
         return AudioEngine.instance;
+    }
+
+    public onReady(callback: () => void) {
+        if (this.isInitialized) {
+            callback();
+        } else {
+            this.readyListeners.push(callback);
+        }
+    }
+
+    public offReady(callback: () => void) {
+        this.readyListeners = this.readyListeners.filter(cb => cb !== callback);
+    }
+
+    public isReady(): boolean {
+        return this.isInitialized;
     }
 
     public setMuted(muted: boolean) {
@@ -83,83 +85,140 @@ class AudioEngine {
         }
     }
 
-    public async init() {
-        if (this.isInitialized) return;
-        if (typeof window === 'undefined') return;
-
-        try {
-            this.context = new AudioContext();
-            if (this.context.state === 'suspended') {
-                await this.context.resume();
+    public init(): Promise<void> {
+        if (this.isInitialized) {
+            return Promise.resolve();
+        }
+        if (this.initPromise) {
+            return this.readyPromise;
+        }
+    
+        this.initPromise = (async () => {
+            if (typeof window === 'undefined') {
+                this.isInitialized = true;
+                this.resolveReady();
+                return; 
             }
+    
+            try {
+                if (!this.context) {
+                    this.context = new AudioContext();
+                }
+                
+                if (this.context.state === 'suspended') {
+                    await this.context.resume();
+                }
+    
+                const blob = new Blob([prelude], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                try {
+                    await this.context.audioWorklet.addModule(url);
+                } catch(e) {
+                    // This error is not fatal if it's because the processor is already there
+                    // (e.g., from a previous run in a hot-reloading dev environment).
+                    if (!e.message.includes('is already registered')) {
+                        throw e; // Re-throw other errors
+                    }
+                } finally {
+                    URL.revokeObjectURL(url);
+                }
+    
+                if (!this.workletNode) {
+                    this.workletNode = new AudioWorkletNode(this.context, 'dsp-processor', {
+                        outputChannelCount: [2]
+                    });
+                    this.workletNode.connect(this.context.destination);
+                }
+                
+                if (!this.clockNode) {
+                    this.clockNode = new AudioWorkletNode(this.context, 'clock');
+                    this.clockNode.port.onmessage = (e) => this.handleTick(e.data);
+                    this.clockNode.port.postMessage('start');
+                }
+    
+            } catch (e) {
+                console.error("Error initializing AudioEngine:", e);
+                this.initPromise = null; // Clear promise on failure to allow retry
+                throw e;
+            }
+        })();
+    
+        return this.readyPromise;
+    }
 
-            const blob = new Blob([prelude], { type: 'application/javascript' });
-            const url = URL.createObjectURL(blob);
-            await this.context.audioWorklet.addModule(url);
-
-            this.workletNode = new AudioWorkletNode(this.context, 'dsp-processor', {
-                outputChannelCount: [2]
-            });
-            this.workletNode.connect(this.context.destination);
+    private handleTick(tickTime: number) {
+        if (!this.isInitialized) {
+            this.startTime = tickTime;
             this.isInitialized = true;
-        } catch (e) {
-            console.error("Error initializing AudioEngine:", e);
-            this.isInitialized = false;
+            this.resolveReady();
+            // Defer listener execution to ensure the event loop is clear
+            setTimeout(() => {
+                this.readyListeners.forEach(cb => cb());
+                this.readyListeners = [];
+            }, 0);
+        }
+
+        if (this.scheduledCallbacks.size === 0) return;
+
+        // Iterate over a copy of the keys, as the map might be modified during iteration by callbacks
+        const ids = [...this.scheduledCallbacks.keys()];
+        for (const id of ids) {
+            const event = this.scheduledCallbacks.get(id);
+            if (event && event.time <= tickTime) {
+                this.scheduledCallbacks.delete(id);
+                // The callback is async. By calling it directly without await and without
+                // setTimeout, we schedule it as a microtask. This ensures it runs before any
+                // macrotask (like a test's setTimeout), fixing race conditions in tests.
+                event.callback(tickTime).catch(err => {
+                    console.error(`Error in scheduled callback '${id}':`, err);
+                });
+            }
         }
     }
+    
+    public getContextTime(): number {
+        return this.context?.currentTime ?? 0;
+    }
 
-    public definePatch(name: string, graphQuotation: any[]) {
-        if (this.isMuted) return;
-        if (!this.isInitialized) return;
+    public getStartTime(): number {
+        return this.startTime;
+    }
 
-        const graph = deepClone(graphQuotation);
-        const template: PatchTemplate = { graph, params: {} };
-        const paramCounters = {};
-        analyzeAndBuildTemplate(template.graph, template, paramCounters);
-        this.patchTemplates.set(name, template);
+    public getElapsedTime(): number {
+        return this.isInitialized ? (this.getContextTime() - this.startTime) : 0;
     }
     
-    public play(target: string | any[], sourceId?: string): string {
+    public schedule(id: string, time: number, callback: (tickTime: number) => Promise<void>) {
+        if (!this.isInitialized) {
+            this.init().catch(e => console.error("Could not auto-initialize AudioEngine for scheduling.", e));
+        }
+        this.scheduledCallbacks.set(id, { time, callback });
+    }
+
+    public cancel(id: string) {
+        this.scheduledCallbacks.delete(id);
+    }
+    
+    public play(graph: any[], sourceId?: string): string {
         if (this.isMuted) return '';
         if (!this.isInitialized || !this.workletNode) return '';
     
-        let graphToPlay: any[];
-        let params: { [key: string]: number };
-        let isNamedPlay = false;
-        let patchName: string | null = null;
+        const graphToPlay = deepClone(graph);
+        const template: PatchTemplate = { graph: graphToPlay, params: {} };
+        const paramCounters = {};
+        analyzeAndBuildTemplate(template.graph, template, paramCounters);
+        const params = template.params;
     
-        if (typeof target === 'string') { // Play by name
-            const template = this.patchTemplates.get(target);
-            if (!template) {
-                console.warn(`Patch "${target}" not found.`);
-                return '';
-            }
-            patchName = target;
-            isNamedPlay = true;
-            graphToPlay = deepClone(template.graph);
-            params = { ...template.params };
-        } else { // Anonymous play
-            graphToPlay = deepClone(target);
-            const template: PatchTemplate = { graph: graphToPlay, params: {} };
-            const paramCounters = {};
-            analyzeAndBuildTemplate(template.graph, template, paramCounters);
-            params = template.params;
-        }
-    
-        const effectiveSourceId = isNamedPlay ? patchName : sourceId;
-    
-        // If a voice for this source already exists, update it instead of creating a new one.
-        if (effectiveSourceId && this.sourceVoices.has(effectiveSourceId)) {
-            const id = this.sourceVoices.get(effectiveSourceId)!;
+        if (sourceId && this.sourceVoices.has(sourceId)) {
+            const id = this.sourceVoices.get(sourceId)!;
             this.workletNode.port.postMessage({ command: 'update', id, graph: graphToPlay, params });
             return id;
         }
     
-        // Otherwise, create a new voice.
         const id = `voice_${this.voiceIdCounter++}`;
     
-        if (effectiveSourceId) {
-            this.sourceVoices.set(effectiveSourceId, id);
+        if (sourceId) {
+            this.sourceVoices.set(sourceId, id);
         }
     
         this.workletNode.port.postMessage({ command: 'play', id, graph: graphToPlay, params });
@@ -177,6 +236,21 @@ class AudioEngine {
         }
     }
 
+    public setMouse(x: number, y: number): void {
+        if (!this.isInitialized || !this.workletNode) return;
+        this.workletNode.port.postMessage({ command: 'mouse', x, y });
+    }
+
+    public setMouseDown(x: number, y: number, down: boolean): void {
+        if (!this.isInitialized || !this.workletNode) return;
+        this.workletNode.port.postMessage({ command: 'mousedown', x, y, down });
+    }
+
+    public setTempo(bpm: number): void {
+        if (!this.isInitialized || !this.workletNode) return;
+        this.workletNode.port.postMessage({ command: 'setTempo', bpm });
+    }
+
     public stop(patchName: string): string[] {
         if (this.isMuted) return [];
         if (!this.isInitialized || !this.workletNode) return [];
@@ -190,6 +264,7 @@ class AudioEngine {
     }
 
     public stopAll(): string[] {
+        this.scheduledCallbacks.clear();
         if (this.workletNode) {
             this.workletNode.port.postMessage({ command: 'stopAll' });
             const allIds = Array.from(this.sourceVoices.values());
@@ -197,12 +272,6 @@ class AudioEngine {
             return allIds;
         }
         return [];
-    }
-
-    public setTempo(newTempo: number) {
-        if (typeof newTempo === 'number' && newTempo > 0) {
-            this.tempo = newTempo;
-        }
     }
 }
 

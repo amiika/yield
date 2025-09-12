@@ -21,8 +21,8 @@ export const all: Operator = {
         effect: '[L [P]] -> [bool]'
     },
     examples: [
-        { code: '[2 4 6] [2 % 0 ==] all', expected: [true] },
-        { code: '[2 4 7] [2 % 0 ==] all', expected: [false] },
-        { code: '[] [false] all', expected: [true] },
+        { code: '(2 4 6) (2 % 0 ==) all', expected: [true] },
+        { code: '(2 4 7) (2 % 0 ==) all', expected: [false] },
+        { code: '() (false) all', expected: [true] },
     ]
 };

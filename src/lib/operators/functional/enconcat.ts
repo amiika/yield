@@ -13,7 +13,7 @@ export const enconcat: Operator = {
         effect: '[L1 L2 E] -> [L3]'
     },
     examples: [
-        { code: '[1 2] [3 4] 0 enconcat', expected: [[1, 2, 0, 3, 4]] },
-        { code: '["a"] ["b"] "-" enconcat', expected: [["a", "-", "b"]] },
+        { code: '(1 2) (3 4) 0 enconcat', expected: [[1, 2, 0, 3, 4]] },
+        { code: '("a") ("b") "-" enconcat', expected: [["a", "-", "b"]] },
     ]
 };

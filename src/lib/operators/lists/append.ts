@@ -7,7 +7,7 @@ export const append: Operator = {
         effect: '[L E] -> [L\']'
     },
     examples: [
-        { code: '[1 2] 3 append', expected: [[1, 2, 3]] },
-        { code: '[] "a" append', expected: [["a"]] },
+        { code: '(1 2) 3 append', expected: [[1, 2, 3]] },
+        { code: '() "a" append', expected: [["a"]] },
     ]
 };

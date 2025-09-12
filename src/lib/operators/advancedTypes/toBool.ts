@@ -11,7 +11,6 @@ export const toBool: Operator = {
         { code: '0 toBool', expected: [false] },
         { code: '"" toBool', expected: [false] },
         { code: '"hello" toBool', expected: [true] },
-        { code: '[] toBool', expected: [true] }, // Empty lists are truthy in JS
-        { code: '{} toBool', expected: [true] },
+        { code: '[] toBool', expected: [true] }
     ]
 };

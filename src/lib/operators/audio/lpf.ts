@@ -11,7 +11,6 @@ export const lpf: Operator = {
         description: 'Applies a low-pass filter to an audio signal node.',
         effect: '[L_graph F_cutoff F_resonance] -> [L_graph]'
     },
-    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
     examples: [
         { code: "220 saw 800 0.5 lpf play", expected: [['lpf', ['saw', 220], 800, 0.5]] },
     ]

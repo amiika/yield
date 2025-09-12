@@ -24,14 +24,13 @@ export const redo: Operator = {
         description: 'Re-applies an operation that was undone. Can only be used after `undo`.',
         effect: '[...] -> [...]'
     },
-    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
     examples: [
         { 
-            code: ['1 2 +', 'undo', 'redo'], 
+            replCode: ['1 2 +', 'undo', 'redo'], 
             expected: [3]
         },
         {
-            code: ['1 2 +', 'undo', '3 4 +', 'redo'], // redo should do nothing here as history was truncated
+            replCode: ['1 2 +', 'undo', '3 4 +', 'redo'], // redo should do nothing here as history was truncated
             expected: [7]
         }
     ]

@@ -7,9 +7,9 @@ export const nullPredicate: Operator = {
         effect: '[A] -> [bool]'
     },
     examples: [
-        { code: '[] null?', expected: [true] },
+        { code: '() null?', expected: [true] },
         { code: '0 null?', expected: [true] },
-        { code: '[1] null?', expected: [false] },
+        { code: '(1) null?', expected: [false] },
         { code: '1 null?', expected: [false] },
     ]
 };

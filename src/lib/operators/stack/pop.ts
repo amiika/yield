@@ -8,6 +8,6 @@ export const pop: Operator = {
     },
     examples: [
         { code: '1 2 3 pop', expected: [1, 2] },
-        { code: '[] 1 pop', expected: [[]] },
+        { code: '() 1 pop', expected: [[]] },
     ]
 };

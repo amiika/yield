@@ -25,7 +25,7 @@ export const cond: Operator = {
         effect: '[V [ [C1 T1] .. [D] ]] -> ...'
     },
     examples: [
-        { code: '2 [[ [1 ==] [pop "one"] ] [ [2 ==] [pop "two"] ] [ [pop "other"] ]] cond', expected: ["two"] },
-        { code: '3 [[ [1 ==] [pop "one"] ] [ [2 ==] [pop "two"] ] [ [pop "other"] ]] cond', expected: ["other"] },
+        { code: '2 (( (1 ==) (pop "one") ) ( (2 ==) (pop "two") ) ( (pop "other") )) cond', expected: ["two"] },
+        { code: '3 (( (1 ==) (pop "one") ) ( (2 ==) (pop "two") ) ( (pop "other") )) cond', expected: ["other"] },
     ]
 };

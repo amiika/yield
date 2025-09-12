@@ -21,8 +21,8 @@ export const some: Operator = {
         effect: '[L [P]] -> [bool]'
     },
     examples: [
-        { code: '[1 2 3 4] [3 >] some', expected: [true] },
-        { code: '[1 2 3 4] [5 >] some', expected: [false] },
-        { code: '[] [true] some', expected: [false] },
+        { code: '(1 2 3 4) (3 >) some', expected: [true] },
+        { code: '(1 2 3 4) (5 >) some', expected: [false] },
+        { code: '() (true) some', expected: [false] },
     ]
 };

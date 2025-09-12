@@ -39,17 +39,17 @@ export const condlinrec: Operator = {
     examples: [
         { 
             code: `# Factorial with condlinrec
-5 [ 
-    [ [dup 0 ==] [pop 1] ]
-    [ [true] [dup pred] [*] ]
-] condlinrec`, 
+5 ( 
+    ( (dup 0 ==) (pop 1) )
+    ( (true) (dup pred) (*) )
+) condlinrec`, 
             expected: [120] 
         },
         {
-            code: `1 [ 
-                [ [dup 0 ==] [pop 1] ]
-                [ [true] [dup pred] [*] ]
-            ] condlinrec`, 
+            code: `1 ( 
+                ( (dup 0 ==) (pop 1) )
+                ( (true) (dup pred) (*) )
+            ) condlinrec`, 
             expected: [1] 
         }
     ]

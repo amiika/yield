@@ -7,11 +7,11 @@ export const small: Operator = {
         effect: '[A] -> [bool]'
     },
     examples: [
-        { code: '[42] small', expected: [true] },
+        { code: '(42) small', expected: [true] },
         { code: '1 small', expected: [true] },
         { code: '0 small', expected: [true] },
-        { code: '[] small', expected: [true] },
-        { code: '[1 2] small', expected: [false] },
+        { code: '() small', expected: [true] },
+        { code: '(1 2) small', expected: [false] },
         { code: '2 small', expected: [false] },
     ]
 };

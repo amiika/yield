@@ -5,6 +5,7 @@ import { stack } from './stack';
 import { clock } from './clock';
 import { rand } from './rand';
 import { clearall } from './clearall';
+import { t } from './t';
 import type { Category } from '../../types';
 
 export const literals: Category = {
@@ -18,5 +19,6 @@ export const literals: Category = {
         clock,
         rand,
         clearall,
+        t,
     }
 };

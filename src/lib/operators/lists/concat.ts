@@ -7,8 +7,8 @@ export const concat: Operator = {
         effect: '[S T] -> [U]'
     },
     examples: [
-        { code: '[1 2] [3 4] concat', expected: [[1, 2, 3, 4]] },
+        { code: '(1 2) (3 4) concat', expected: [[1, 2, 3, 4]] },
         { code: '"hello " "world" concat', expected: ["hello world"] },
-        { code: '[1] [] concat', expected: [[1]] },
+        { code: '(1) () concat', expected: [[1]] },
     ]
 };

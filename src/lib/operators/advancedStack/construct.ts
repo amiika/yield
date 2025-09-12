@@ -32,6 +32,6 @@ export const construct: Operator = {
         effect: '[S [P] [[P1]..]] -> [S R1 R2 ..]'
     },
     examples: [
-        { code: `10 20 [pop] [[dup] [succ]] construct`, expected: [10, 20, 20, 21] }
+        { code: `10 20 (pop) ((dup) (succ)) construct`, expected: [10, 20, 20, 21] }
     ]
 };

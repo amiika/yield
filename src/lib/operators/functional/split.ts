@@ -25,7 +25,7 @@ export const split: Operator = {
         effect: '[L [P]] -> [L_true L_false]'
     },
     examples: [
-        { code: '[1 2 3 4 5] [2 % 0 ==] split', expected: [[2, 4], [1, 3, 5]] },
-        { code: '[1 2 3] [10 >] split', expected: [[], [1, 2, 3]] },
+        { code: '(1 2 3 4 5) (2 % 0 ==) split', expected: [[2, 4], [1, 3, 5]] },
+        { code: '(1 2 3) (10 >) split', expected: [[], [1, 2, 3]] },
     ]
 };

@@ -28,7 +28,6 @@ export const stop: Operator = {
         description: 'Stops a playing audio patch by its name (symbol), then pushes the name back onto the stack. If the stack is empty, it stops all audio (like `hush`).',
         effect: '[A]? -> [A]?'
     },
-    // FIX: Renamed 'testCases' to 'examples' to match the Operator type.
     examples: [
         { 
             code: ':my-synth stop', 

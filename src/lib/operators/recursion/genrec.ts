@@ -29,12 +29,12 @@ export const genrec: Operator = {
     },
     examples: [
         { 
-            code: '5 [ [dup 0 <=] [pop 1] [dup pred] [i *] genrec ] i',
+            code: '5 ( (dup 0 <=) (pop 1) (dup pred) (i *) genrec ) i',
             expected: [120] 
         },
         {
             code: [
-                '[ [dup 0 ==] [pop 1] [dup pred] [i *] genrec ] fac =',
+                '( (dup 0 ==) (pop 1) (dup pred) (i *) genrec ) fac =>',
                 '5 fac'
             ],
             expected: [120]

@@ -15,12 +15,11 @@ export const swoncat: Operator = {
         description: 'Concatenates two sequences (lists or strings) after swapping them. Equivalent to `swap concat`.',
         effect: '[S T] -> [U]'
     },
-    // FIX: Renamed `testCases` to `examples` to match the Operator type.
     examples: [
-        { code: '[1 2] [3 4] swoncat', expected: [[3, 4, 1, 2]] },
+        { code: '(1 2) (3 4) swoncat', expected: [[3, 4, 1, 2]] },
         { code: '"world" "hello" swoncat', expected: ["helloworld"] },
-        { code: '[] [1] swoncat', expected: [[1]] },
-        { code: '[1] [] swoncat', expected: [[1]] },
+        { code: '() (1) swoncat', expected: [[1]] },
+        { code: '(1) () swoncat', expected: [[1]] },
         { code: '"a" "b" swoncat', expected: ["ba"] },
     ]
 };

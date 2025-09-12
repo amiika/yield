@@ -15,7 +15,7 @@ export const whileOp: Operator = {
         effect: '[ [B] [D] ] -> ...'
     },
     examples: [
-        { code: '5 [dup 0 >] [1 -] while', expected: [0] },
-        { code: '0 [false] [pop] while', expected: [0] },
+        { code: '5 (dup 0 >) (1 -) while', expected: [0] },
+        { code: '0 (false) (pop) while', expected: [0] },
     ]
 };

@@ -7,7 +7,7 @@ export const second: Operator = {
         effect: '[L] -> [E L]'
     },
     examples: [
-        { code: '[10 20 30] second', expected: [20, [10, 20, 30]] },
+        { code: '(10 20 30) second', expected: [20, [10, 20, 30]] },
         { code: '"abc" second', expected: ["b", "abc"] },
     ]
 };

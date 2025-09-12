@@ -6,7 +6,6 @@ export const stringPredicate: Operator = {
         description: 'Tests if the top element is a string.',
         effect: '[A] -> [bool]'
     },
-    // FIX: Renamed `testCases` to `examples` to match the Operator type.
     examples: [
         { code: '"hi" string?', expected: [true] },
         { code: '"" string?', expected: [true] },

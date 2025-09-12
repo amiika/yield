@@ -14,7 +14,7 @@ export const dip3: Operator = {
         effect: '[X Y Z [P]] -> [... X Y Z]'
     },
     examples: [
-        { code: '1 2 3 [10 20 +] dip3', expected: [30, 1, 2, 3] },
-        { code: '10 20 1 2 3 [+] dip3', expected: [30, 1, 2, 3] }
+        { code: '1 2 3 (10 20 +) dip3', expected: [30, 1, 2, 3] },
+        { code: '10 20 1 2 3 (+) dip3', expected: [30, 1, 2, 3] }
     ]
 };

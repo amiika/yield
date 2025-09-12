@@ -23,6 +23,6 @@ export const unary3: Operator = {
         effect: '[X1 X2 X3 [P]] -> [R1 R2 R3]'
     },
     examples: [
-        { code: '10 20 30 [succ] unary3', expected: [11, 21, 31] }
+        { code: '10 20 30 (succ) unary3', expected: [11, 21, 31] }
     ]
 };

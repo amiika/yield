@@ -7,7 +7,7 @@ export const has: Operator = {
         effect: '[A X] -> [bool]'
     },
     examples: [
-        { code: '[1 2 3] 2 has', expected: [true] },
-        { code: '[1 2 3] 4 has', expected: [false] },
+        { code: '(1 2 3) 2 has', expected: [true] },
+        { code: '(1 2 3) 4 has', expected: [false] },
     ]
 };

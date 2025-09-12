@@ -9,7 +9,9 @@ import { rotate } from './rotate';
 import { popd } from './popd';
 import { dupd } from './dupd';
 import { swapd } from './swapd';
-import { clearstack } from './clearstack';
+import { clear } from './clearstack';
+import { over } from './over';
+import { tuck } from './tuck';
 import type { Category } from '../../types';
 
 export const stack: Category = {
@@ -20,6 +22,8 @@ export const stack: Category = {
         put,
         dup,
         swap,
+        over,
+        tuck,
         id,
         rollup,
         rolldown,
@@ -27,6 +31,6 @@ export const stack: Category = {
         popd,
         dupd,
         swapd,
-        clearstack,
+        clear,
     }
 };

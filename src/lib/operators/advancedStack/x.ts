@@ -23,6 +23,6 @@ export const x: Operator = {
         effect: '[X [P]] -> [X [P] R]'
     },
     examples: [
-        { code: '10 [1 +] x', expected: [10, [1, '+'], 11] }
+        { code: '10 (1 +) x', expected: [10, [1, '+'], 11] }
     ]
 };

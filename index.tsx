@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { documentation } from './src/lib/documentation';
+import { documentation } from './src/lib/tutorial';
 import { Repl } from './src/components/Repl';
 import { NotebookCell } from './src/components/NotebookCell';
 import { TestRunner } from './src/components/TestRunner';
 import { ReferencePage } from './src/components/ReferencePage';
 import { audioEngine } from './src/lib/audio/AudioEngine';
 import { SynopsisPage } from './src/components/SynopsisPage';
+import { mouseState, mouseDownState, isMouseDownState } from './src/lib/mouse-state';
 
 // Icon for collapsible sections
 const ChevronIcon = ({ isExpanded }: { isExpanded: boolean }) => (
@@ -84,6 +86,40 @@ const App = () => {
 
         window.addEventListener('click', initAudio, { once: true });
         window.addEventListener('keydown', initAudio, { once: true });
+    }, []);
+
+    // Add mouse listeners to update audio engine and global state.
+    useEffect(() => {
+        const handleMouseDown = (e: MouseEvent) => {
+            isMouseDownState.down = true;
+            mouseDownState.x = e.clientX;
+            mouseDownState.y = e.clientY;
+            audioEngine.setMouseDown(e.clientX, e.clientY, true);
+        };
+        const handleMouseUp = (e: MouseEvent) => {
+            isMouseDownState.down = false;
+            audioEngine.setMouseDown(e.clientX, e.clientY, false);
+        };
+        const handleMouseMove = (e: MouseEvent) => {
+            audioEngine.setMouse(e.clientX, e.clientY);
+            // Update the global mouse state for interpreter operators
+            mouseState.x = e.clientX;
+            mouseState.y = e.clientY;
+
+            if (isMouseDownState.down) {
+                mouseDownState.x = e.clientX;
+                mouseDownState.y = e.clientY;
+                audioEngine.setMouseDown(e.clientX, e.clientY, true);
+            }
+        };
+        window.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('mousedown', handleMouseDown);
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
     }, []);
 
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, newRoute: string) => {

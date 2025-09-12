@@ -7,7 +7,7 @@ export const of: Operator = {
         effect: '[I A] -> [X]'
     },
     examples: [
-        { code: '1 [10 20 30] of', expected: [20] },
+        { code: '1 (10 20 30) of', expected: [20] },
         { code: '0 "world" of', expected: ["w"] },
     ]
 };

@@ -7,7 +7,7 @@ export const first: Operator = {
         effect: '[[A B]] -> [A]'
     },
     examples: [
-        { code: '[10 20 30] first', expected: [10] },
-        { code: '[[1 2] 3] first', expected: [[1, 2]] },
+        { code: '(10 20 30) first', expected: [10] },
+        { code: '((1 2) 3) first', expected: [[1, 2]] },
     ]
 };

@@ -9,7 +9,7 @@ export const leaf: Operator = {
     examples: [
         { code: '42 leaf', expected: [true] },
         { code: '"hello" leaf', expected: [true] },
-        { code: '[] leaf', expected: [false] },
-        { code: '[1 2] leaf', expected: [false] },
+        { code: '() leaf', expected: [false] },
+        { code: '(1 2) leaf', expected: [false] },
     ]
 };

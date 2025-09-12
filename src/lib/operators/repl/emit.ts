@@ -13,7 +13,6 @@ export const emit: Operator = {
         description: 'Outputs the top of the stack to the REPL.',
         effect: '[S] -> []'
     },
-    // FIX: Renamed 'testCases' to 'examples' for consistency.
     examples: [
         { code: '"Hello" emit', expected: [] }
     ]

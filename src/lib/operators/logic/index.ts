@@ -5,8 +5,8 @@ import { not } from './not';
 import type { Category } from '../../types';
 
 export const logic: Category = {
-    name: "Set operations",
-    description: "Operators for performing set operations (intersection, union, difference) and boolean logic.",
+    name: "Logical Operations",
+    description: "Operators for performing boolean logic. For lists, these operators perform set-like operations (intersection, union, etc.).",
     definitions: {
         and,
         or,

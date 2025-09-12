@@ -1,38 +1,31 @@
-import { unstack } from './unstack';
-import { infra } from './infra';
-import { x } from './x';
-import { construct } from './construct';
-import { nullary } from './nullary';
-import { unary } from './unary';
-import { binary } from './binary';
-import { ternary } from './ternary';
-import { unary2 } from './unary2';
-import { unary3 } from './unary3';
-import { unary4 } from './unary4';
-import { popstack } from './popstack';
-import { popto } from './popto';
+
 import { appendTo } from './appendTo';
+import { ary } from './binary';
+import { construct } from './construct';
+import { infra } from './infra';
+import { nullary } from './nullary';
 import { popstackto } from './popstackto';
+import { popto } from './popto';
+import { unary } from './unary';
+import { unstack } from './unstack';
+import { x } from './x';
+import { quote } from './quote';
 import type { Category } from '../../types';
 
 export const advancedStack: Category = {
     name: "Advanced Stack Operations",
     description: "Powerful operators for metaprogramming and advanced stack manipulation.",
     definitions: {
-        unstack,
-        infra,
-        x,
-        construct,
-        popstack,
-        popto,
         appendTo,
-        popstackto,
+        ary,
+        construct,
+        infra,
         nullary,
+        popstackto,
+        popto,
         unary,
-        binary,
-        ternary,
-        unary2,
-        unary3,
-        unary4,
+        unstack,
+        x,
+        quote,
     }
 };

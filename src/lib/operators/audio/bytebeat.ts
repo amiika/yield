@@ -1,105 +1,117 @@
-import type { Operator, StackValue } from '../../types';
 
-const opMap = {
-    // Math
-    '+': (b, a) => `(${a} + ${b})`,
-    '-': (b, a) => `(${a} - ${b})`,
-    '*': (b, a) => `(${a} * ${b})`,
-    '/': (b, a) => `(${a} / ${b})`,
-    '%': (b, a) => `(${a} % ${b})`,
-    // Bitwise
-    '>>': (b, a) => `(${a} >> ${b})`,
-    '<<': (b, a) => `(${a} << ${b})`,
-    '&': (b, a) => `(${a} & ${b})`,
-    '|': (b, a) => `(${a} | ${b})`,
-    '^': (b, a) => `(${a} ^ ${b})`,
-    '~': (a) => `(~${a})`,
-    // JS Math
-    'sin': (a) => `Math.sin(${a})`,
-    'cos': (a) => `Math.cos(${a})`,
-    'tan': (a) => `Math.tan(${a})`,
-    'pow': (b, a) => `Math.pow(${a}, ${b})`,
-    'sqrt': (a) => `Math.sqrt(${a})`,
-    'abs': (a) => `Math.abs(${a})`,
-    'floor': (a) => `Math.floor(${a})`,
-    'ceil': (a) => `Math.ceil(${a})`,
-    'round': (a) => `Math.round(${a})`,
-    // Relational (return 1 or 0)
-    '>': (b, a) => `((${a} > ${b}) ? 1 : 0)`,
-    '<': (b, a) => `((${a} < ${b}) ? 1 : 0)`,
-    '>=': (b, a) => `((${a} >= ${b}) ? 1 : 0)`,
-    '<=': (b, a) => `((${a} <= ${b}) ? 1 : 0)`,
-    '==': (b, a) => `((${a} === ${b}) ? 1 : 0)`,
-    '!=': (b, a) => `((${a} !== ${b}) ? 1 : 0)`,
-};
 
-const arityMap = {
-    // Math
-    '+': 2, '-': 2, '*': 2, '/': 2, '%': 2,
-    // Bitwise
-    '>>': 2, '<<': 2, '&': 2, '|': 2, '^': 2,
-    '~': 1,
-    // JS Math
-    'sin': 1, 'cos': 1, 'tan': 1, 'pow': 2, 'sqrt': 1, 'abs': 1,
-    'floor': 1, 'ceil': 1, 'round': 1,
-    // Relational
-    '>': 2, '<': 2, '>=': 2, '<=': 2, '==': 2, '!=': 2,
-};
-
-function transpile(quotation: StackValue[]): string {
-    const stack: string[] = [];
-    for (const token of quotation) {
-        if (typeof token === 'number') {
-            stack.push(String(token));
-        } else if (typeof token === 'string') {
-            if (token === 't') {
-                stack.push('t');
-            } else if (opMap[token]) {
-                const arity = arityMap[token];
-                if (stack.length < arity) {
-                    throw new Error(`Stack underflow during bytebeat transpilation for operator '${token}'.`);
-                }
-                const args = stack.splice(stack.length - arity, arity);
-                const jsExpr = opMap[token](...args.reverse()); // Reverse args for correct order
-                stack.push(jsExpr);
-            } else {
-                 throw new Error(`Unsupported operator in bytebeat quotation: '${token}'. Only basic math, bitwise, and some JS Math operators are supported.`);
-            }
-        } else {
-            throw new Error(`Unsupported token type in bytebeat quotation: ${typeof token}`);
-        }
-    }
-
-    if (stack.length === 0) {
-        throw new Error('Bytebeat quotation must result in a value on the stack.');
-    }
-
-    // Be lenient: if there are multiple values, just use the top one.
-    // This handles cases where a formula inadvertently leaves extra values on the stack.
-    return stack[stack.length - 1];
-}
+import type { Operator } from '../../types';
+import { transpileJS } from '../../utils';
 
 export const bytebeat: Operator = {
     definition: {
         exec: function*(s) {
-            const quotation = s.pop() as StackValue[];
-            if (!Array.isArray(quotation)) throw new Error('bytebeat expects a quotation (list).');
+            const frequency = s.pop() as number;
+            const quotation = s.pop() as any[];
+            
+            if (!Array.isArray(quotation)) {
+                s.push(quotation, frequency); // push back
+                throw new Error('bytebeat expects a quotation (list) containing a valid RPN expression.');
+            }
+            if (typeof frequency !== 'number') {
+                s.push(quotation, frequency); // push back
+                throw new Error('bytebeat expects a frequency number.');
+            }
 
-            const jsCode = transpile(quotation);
-            s.push(['bytebeat', jsCode]);
+            try {
+                const code = transpileJS(quotation);
+                s.push(['bytebeat', code, frequency]);
+            } catch(e) {
+                // Add context to the transpiler error
+                throw new Error(`Error transpiling bytebeat quotation: ${e.message}`);
+            }
         },
-        description: 'Bytebeat node. Consumes a quotation which is a stack-based formula that is transpiled into a high-performance JavaScript expression. This expression is evaluated for every audio sample. The special operator `t` is implicitly available in the quotation and represents the current time in samples. The integer result of the formula is wrapped to 8 bits (0-255) and converted to an audio signal (-1 to 1). Supported operators: `+ - * / % >> << & | ^ ~ sin cos tan pow sqrt abs floor ceil round > < >= <= == !=`. Relational operators return 1 for true and 0 for false.',
-        effect: '[[Quotation]] -> [L_graph]'
+        description: `Bytebeat node. Consumes a quotation with an RPN expression and a frequency. The expression is transpiled to JS and evaluated for every audio sample. The integer variable 't' (time) is available inside the quotation. The integer result of the formula is wrapped to 8 bits (0-255) and converted to an audio signal (-1 to 1).`,
+        effect: '[L_quotation F_frequency] -> [L_graph]'
     },
-    // FIX: Renamed `testCases` to `examples` to match the Operator type.
     examples: [
         { 
-            code: `[t 255 &] bytebeat`, 
-            expected: [['bytebeat', '(t & 255)']] 
+            code: `
+# A simple bytebeat formula: t * 42
+# In RPN, this is "t 42 *"
+(t 42 *) 8000 bytebeat play`, 
+            assert: s => Array.isArray(s[0]) && s[0][0] === 'bytebeat',
+            expectedDescription: 'A bytebeat audio graph'
         },
         {
-            code: `[t 1000 % 25 * sin] bytebeat`,
-            expected: [['bytebeat', 'Math.sin(((t % 1000) * 25))']]
+            code: `
+# A classic formula: (t>>7|t|t>>6)*10+4*(t&t>>13|t>>6)
+# This has to be broken down into RPN steps.
+(
+  # Part 1: (t>>7|t|t>>6)
+  t 7 >> t | t 6 >> |
+  
+  # Part 2: *10
+  10 *
+  
+  # Part 3: 4*(t&t>>13|t>>6)
+  4 
+  t t 13 >> &
+  t 6 >>
+  | *
+  
+  # Part 4: Add them together
+  +
+) 8000 bytebeat play`,
+            assert: s => s[0][0] === 'bytebeat',
+            expectedDescription: `A bytebeat audio graph from a complex formula.`
+        },
+        {
+            code: `
+# Formula: t*(t&16384?6:5)*(3+(3&t>>(t&2048?7:14)))>>(3&t>>9)|t>>2
+# Let's break it down.
+
+(
+  # 1. t
+  t
+  
+  # 2. (t&16384 ? 6 : 5) -> RPN: t 16384 & (6) (5) ?
+  t 16384 & (6) (5) ?
+  
+  # 3. Multiply 1 and 2
+  *
+  
+  # 4. (3 + (3 & (t >> (t&2048?7:14))))
+  # 4a. (t&2048?7:14) -> t 2048 & (7) (14) ?
+  # 4b. t >> (4a) -> t (4a) >>
+  # 4c. 3 & (4b) -> 3 (4b) &
+  # 4d. 3 + (4c) -> 3 (4c) +
+  3 t t 2048 & (7) (14) ? >> 3 swap & +
+
+  # 5. Multiply 3 and 4
+  *
+  
+  # 6. (3 & (t >> 9))
+  3 t 9 >> &
+  
+  # 7. Right shift 5 by 6
+  >>
+
+  # 8. (t >> 2)
+  t 2 >>
+  
+  # 9. Bitwise OR 7 and 8
+  |
+) 8000 bytebeat play
+`,
+            assert: s => s[0][0] === 'bytebeat',
+            expectedDescription: `A bytebeat audio graph from a very complex formula.`
+        },
+        {
+            code: `
+# Control pitch and rhythm with the mouse
+(
+  t mousex 100 / * # rhythm controlled by mousex
+  t mousey 200 / *  # pitch controlled by mousey
+  &
+) 8000 bytebeat play`,
+            assert: s => Array.isArray(s[0]) && s[0][0] === 'bytebeat',
+            expectedDescription: 'A bytebeat audio graph controlled by the mouse.'
         }
     ]
 };

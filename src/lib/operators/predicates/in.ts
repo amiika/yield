@@ -7,7 +7,7 @@ export const inOp: Operator = {
         effect: '[X A] -> [bool]'
     },
     examples: [
-        { code: '2 [1 2 3] in', expected: [true] },
-        { code: '4 [1 2 3] in', expected: [false] },
+        { code: '2 (1 2 3) in', expected: [true] },
+        { code: '4 (1 2 3) in', expected: [false] },
     ]
 };

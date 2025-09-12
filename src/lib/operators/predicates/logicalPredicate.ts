@@ -9,7 +9,6 @@ export const logicalPredicate: Operator = {
         description: 'Tests if the top element is a boolean (`true` or `false`).',
         effect: '[A] -> [bool]'
     },
-    // FIX: Renamed `testCases` to `examples` to match the Operator type.
     examples: [
         { code: 'true logical?', expected: [true] },
         { code: 'false logical?', expected: [true] },

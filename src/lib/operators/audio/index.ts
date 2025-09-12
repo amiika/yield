@@ -1,6 +1,6 @@
+
+
 import { play } from './play';
-import { stop } from './stop';
-import { tempo } from './tempo';
 import { sine } from './sine';
 import { saw } from './saw';
 import { pulse } from './pulse';
@@ -19,7 +19,6 @@ import { mix } from './audio-add';
 import { mul } from './audio-mul';
 import { ctrl } from './ctrl';
 import { hush } from './hush';
-import { patch } from './patch';
 import { bd } from './bd';
 import { sd } from './sd';
 import { lt } from './lt';
@@ -28,7 +27,9 @@ import { ht } from './ht';
 import { hh } from './hh';
 import { bytebeat } from './bytebeat';
 import { floatbeat } from './floatbeat';
-import { t } from './t';
+import { tri } from './tri';
+import { voices } from './voices';
+import { fm } from './fm';
 import type { Category } from '../../types';
 
 export const audio: Category = {
@@ -43,6 +44,7 @@ export const audio: Category = {
         delay,
         distort,
         floatbeat,
+        fm,
         hh,
         hpf,
         ht,
@@ -56,15 +58,13 @@ export const audio: Category = {
         noise,
         note,
         pan,
-        patch,
         play,
         pulse,
         saw,
         sd,
         seq,
         sine,
-        stop,
-        t,
-        tempo,
+        tri,
+        voices,
     }
 };

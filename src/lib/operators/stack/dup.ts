@@ -8,6 +8,6 @@ export const dup: Operator = {
     },
     examples: [
         { code: '10 dup', expected: [10, 10] },
-        { code: '[1 2] dup', expected: [[1, 2], [1, 2]] },
+        { code: '(1 2) dup', expected: [[1, 2], [1, 2]] },
     ]
 };

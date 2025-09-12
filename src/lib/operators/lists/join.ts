@@ -11,8 +11,8 @@ export const join: Operator = {
         effect: '[[S1 S2]] -> [S]'
     },
     examples: [
-        { code: '["hello" " " "world"] join', expected: ["hello world"] },
-        { code: '["a" "b" "c"] join', expected: ["abc"] },
-        { code: '[] join', expected: [""] },
+        { code: '("hello" " " "world") join', expected: ["hello world"] },
+        { code: '("a" "b" "c") join', expected: ["abc"] },
+        { code: '() join', expected: [""] },
     ]
 };

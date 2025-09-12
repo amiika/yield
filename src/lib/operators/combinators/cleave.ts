@@ -16,7 +16,7 @@ export const cleave: Operator = {
         effect: '[X [P1] [P2]] -> [R1 R2]'
     },
     examples: [
-        { code: '10 [dup *] [1 +] cleave', expected: [100, 11] },
-        { code: '[1 2] [size] [first] cleave', expected: [2, 1] },
+        { code: '10 (dup *) (1 +) cleave', expected: [100, 11] },
+        { code: '(1 2) (size) (first) cleave', expected: [2, 1] },
     ]
 };

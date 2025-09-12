@@ -8,6 +8,6 @@ export const swap: Operator = {
     },
     examples: [
         { code: '10 20 swap', expected: [20, 10] },
-        { code: 'true [1] swap', expected: [[1], true] },
+        { code: 'true (1) swap', expected: [[1], true] },
     ]
 };

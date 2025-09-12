@@ -1,3 +1,5 @@
+
+
 import type { Operator } from '../../types';
 
 export const popstackto: Operator = {
@@ -22,7 +24,7 @@ export const popstackto: Operator = {
             dictionary[dictKey] = {
                 body: stackValue,
                 description: "User-defined function/variable.",
-                effect: '... -> []'
+                example: "",
             };
         },
         description: 'Pops a name, assigns the entire rest of the stack as a list to that name, and then clears the stack. `... N popstackto`',

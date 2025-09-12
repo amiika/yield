@@ -26,6 +26,7 @@ body {
 .repl-history {
     scrollbar-width: thin;
     scrollbar-color: #4b5563 #1f2937;
+    text-shadow: 0 0 5px rgba(0,0,0,0.7);
 }
 
 .repl-input {

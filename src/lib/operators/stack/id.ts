@@ -8,6 +8,6 @@ export const id: Operator = {
     },
     examples: [
         { code: '42 id', expected: [42] },
-        { code: '[1 2 3] id', expected: [[1, 2, 3]] },
+        { code: '(1 2 3) id', expected: [[1, 2, 3]] },
     ]
 };

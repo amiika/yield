@@ -7,7 +7,7 @@ export const third: Operator = {
         effect: '[L] -> [E L]'
     },
     examples: [
-        { code: '[10 20 30] third', expected: [30, [10, 20, 30]] },
+        { code: '(10 20 30) third', expected: [30, [10, 20, 30]] },
         { code: '"abc" third', expected: ["c", "abc"] },
     ]
 };

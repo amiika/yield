@@ -15,7 +15,6 @@ export const regsubg: Operator = {
         description: 'Replaces all occurrences of a regex pattern in a string (global substitute). `S Pattern Replacement -> S`',
         effect: '[S Pattern Replace] -> [S\']'
     },
-    // FIX: Renamed 'testCases' to 'examples' for consistency.
     examples: [
         { code: '"banana" "a" "o" regsubg', expected: ["bonono"] },
         { code: '"banana" "an" "o" regsubg', expected: ["booa"] },

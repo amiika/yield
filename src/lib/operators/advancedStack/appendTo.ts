@@ -1,3 +1,6 @@
+
+
+
 import type { Operator } from '../../types';
 
 export const appendTo: Operator = {
@@ -23,26 +26,28 @@ export const appendTo: Operator = {
             const definition = dictionary[dictKey];
 
             if (!definition) {
-                // If it doesn't exist, create it as a list with the value.
-                dictionary[dictKey] = { body: [value], description: "User-defined variable.", effect: '... -> ...' };
+                // If it doesn't exist, create it with the primitive value.
+                dictionary[dictKey] = { body: value, description: "User-defined variable.", example: "" };
             } else if ('body' in definition) {
                 if (!Array.isArray(definition.body)) {
-                    throw new Error(`Cannot append to non-list definition: '${nameForError}'. Use 'popto' or '=' to overwrite.`);
+                    // Auto-promote the scalar value to a list
+                    definition.body = [definition.body, value];
+                } else {
+                    // It's already a list, mutate it.
+                    definition.body.push(value);
                 }
-                // Mutate the existing body list
-                definition.body.push(value);
             } else {
                 // It's a built-in, can't append.
                 throw new Error(`Cannot append to built-in function: '${nameForError}'.`);
             }
         },
-        description: 'Pops a value and a name, then appends the value to the list variable associated with the name. Creates the variable if it does not exist. Alias: `<-`.',
+        description: 'Pops a value and a name, then appends the value to the list variable associated with the name. If the variable exists but is not a list, it is automatically converted to a list. Creates the variable if it does not exist. Alias: `<-`.',
         effect: '[... V N] -> [...]'
     },
     examples: [
         {
             code: [
-                '[] mylist =',
+                '() mylist =',
                 '10 mylist appendTo',
                 '20 mylist <-',
                 'mylist'
@@ -51,18 +56,26 @@ export const appendTo: Operator = {
         },
         {
             code: [
-                '10 newlog <-', // Should create newlog with body [10]
-                '20 newlog <-',
+                '10 newlog <-', // Should create newlog with body 10
+                '20 newlog <-', // Should convert newlog to [10, 20]
                 'newlog'
             ],
             expected: [[10, 20]]
         },
         {
             code: [
-                '42 :mynum <-', // Should create :mynum with body [42]
+                '42 :mynum <-',
                 ':mynum'
             ],
             expected: [42]
+        },
+        {
+            code: [
+                '1 foo =',   // foo is the number 1
+                '2 foo <-',  // Should convert foo to [1, 2]
+                'foo'
+            ],
+            expected: [[1, 2]]
         }
     ]
 };
