@@ -84,7 +84,7 @@ This creates a simple, powerful system where everything is data that can be mani
 
 ### Evolving shadow states with `yield`
 
-While Yield is purely functional, it provides a disciplined way to modify a state variable through the `yield` combinator. This operator acts as a generator: it applies a program to update a state variable, and then pushes the **new** value to the stack.
+Yield provides a disciplined way to modify a state variable through the `yield` combinator. This operator acts as a generator: it applies a program to update a state variable, and then pushes the **new** value to the stack.
 
 A generator is a special kind of function, so it must be defined with `=>` using the syntax `(STATE PROGRAM yield) name =>`. The `STATE` can be a reference to an existing variable or an inline anonymous value.
 
