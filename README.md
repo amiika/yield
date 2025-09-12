@@ -1,6 +1,6 @@
 # Yield
 
-Concatenative live coding language that yields
+Concatenative live coding language that yields. Runs in [your browser](https://amiika.github.io/yield/).
 
 ## Tenets
 
