@@ -32,8 +32,6 @@ world hello =
 hello # -> world
 2 1 = # 1 is 2
 1 1 + # 1 + 1 is 4
-- + => # + is -
-1 1 + # 1 + 1 is now 0
 ```
 
 ## Data Types of Yield
