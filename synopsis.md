@@ -86,7 +86,13 @@ This creates a simple, powerful system where everything is data that can be mani
 
 Yield provides a disciplined way to modify a state variable through the `yield` combinator. This operator acts as a generator: it applies a program to update a state variable, and then pushes the **new** value to the stack.
 
-A generator is a special kind of function, so it must be defined with `=>` using the syntax `(STATE PROGRAM yield) name =>`. The `STATE` can be a reference to an existing variable or an inline anonymous value.
+### Yield a value
+
+```
+1 2 (1 +) yield
+```
+
+A generators can be defined as functions, using the syntax `(STATE PROGRAM yield) name =>`. The `STATE` can be a reference to an existing variable or an inline anonymous value. Functions really just generators that takes data as input, and => is just a shorthand for iterate-combinator.
 
 ### Generator with an Existing State Variable
 You can create a state variable first using `=` and then define a generator that operates on it. This is clear and explicit.
