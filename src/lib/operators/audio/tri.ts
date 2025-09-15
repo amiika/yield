@@ -1,48 +1,31 @@
 
+
 import type { Operator } from '../../types';
+
+const audioOps = new Set(['sine', 'saw', 'pulse', 'tri', 'noise', 'lpf', 'hpf', 'ad', 'adsr', 'delay', 'distort', 'pan', 'note', 'seq', 'impulse', 'mix', 'mul']);
+const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string' && audioOps.has(v[v.length - 1]);
 
 export const tri: Operator = {
     definition: {
         exec: function*(s) {
             const freqOrModulator = s.pop();
-            if (Array.isArray(freqOrModulator)) {
-                if (freqOrModulator.length === 0) {
-                    s.push(['mul', ['triangle', 0], 0]);
-                    return;
-                }
-
-                const firstEl = freqOrModulator[0];
-                // An audio graph is an array starting with a string. A list of frequencies starts with a number.
-                if (typeof firstEl === 'string') {
-                    // It's an audio graph (modulator) for frequency
-                    s.push(['triangle', freqOrModulator]);
-                } else {
-                    // It's a list of frequencies for a chord
-                    const graphs = freqOrModulator.map(freq => ['triangle', freq]);
-                    const mixedGraph = graphs.slice(1).reduce((acc, current) => ['mix', acc, current], graphs[0]);
-                    s.push(mixedGraph);
-                }
+            if (isAudioQuotation(freqOrModulator)) {
+                s.push([...freqOrModulator, 'tri']);
             } else {
-                // It's a static frequency (number)
-                s.push(['triangle', freqOrModulator]);
+                s.push([freqOrModulator, 'tri']);
             }
         },
-        description: 'Creates a triangle wave oscillator node. The frequency can be a number, a list of numbers (for a chord), or an audio graph for frequency modulation (FM).',
-        effect: '[F_freq | [F1 F2...] | L_modulator_graph] -> [L_graph]'
+        description: 'Creates a triangle wave oscillator quotation. The frequency can be a number, a list of numbers (for a chord), or an audio quotation for frequency modulation (FM).',
+        effect: '[F_freq | [F1 F2...] | L_modulator_quotation] -> [L_quotation]'
     },
     examples: [
-        { code: "440 tri", expected: [['triangle', 440]] },
+        { 
+            code: "440 tri (0.01 0.2 0.0 ahr) mul 0.25 play", 
+            expected: [] 
+        },
         {
-            code: '(330 440) tri',
-            assert: (s) => {
-                const graph = s[0];
-                return s.length === 1 && 
-                       Array.isArray(graph) && 
-                       graph[0] === 'mix' &&
-                       graph[1][0] === 'triangle' && graph[1][1] === 330 &&
-                       graph[2][0] === 'triangle' && graph[2][1] === 440;
-            },
-            expectedDescription: 'A mixed audio graph for a chord.'
+            code: '(330 440) tri 0.3 mul 0.25 play',
+            expected: []
         }
     ]
 };

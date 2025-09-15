@@ -3,7 +3,7 @@ import type { Operator, StackValue } from '../../types';
 
 export const times: Operator = {
     definition: {
-        exec: function*(s, options, evaluate, dictionary) {
+        exec: function*(s, options, evaluate) {
             const n = s.pop();
             const p = s.pop();
 
@@ -15,28 +15,7 @@ export const times: Operator = {
                  throw new Error("times expects a program on the stack.");
             }
             
-            let programToRun: StackValue[];
-            
-            let dictKey: string | undefined;
-            if (typeof p === 'symbol') {
-                const key = Symbol.keyFor(p);
-                if (key) dictKey = `:${key}`;
-            } else if (typeof p === 'string' || typeof p === 'number') {
-                dictKey = String(p);
-            }
-            
-            const def = dictKey ? dictionary[dictKey] : undefined;
-
-            // Case 1: The program is a word defined with `=>` (a function).
-            // We just need to execute it by name.
-            if (def && 'body' in def && Array.isArray(def.body) && def.body[def.body.length - 1] === 'iterate') {
-                programToRun = [p];
-            } 
-            // Case 2: The program is a data word or a quotation.
-            // We need to execute it with `iterate`.
-            else {
-                programToRun = Array.isArray(p) ? [...p, 'iterate'] : [p, 'iterate'];
-            }
+            const programToRun = Array.isArray(p) ? p : [p];
 
             for (let i = 0; i < n; i++) {
                 // Pass a copy of the program, because evaluate can mutate it (by shifting tokens off)

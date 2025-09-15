@@ -1,6 +1,6 @@
 # Yield
 
-Concatenative live coding language that yields. Runs in [your browser](https://amiika.github.io/yield/).
+Concatenative live coding language that yields
 
 ## Tenets
 
@@ -18,12 +18,3 @@ Concatenative live coding language that yields. Runs in [your browser](https://a
 ## Contribution
 
 You or AI can contribute anytime. Just don't break any tests and always create new ones for new operators. There are already plenty but never enough.
-
-## Credits
-
-* Manfred von Thun
-* John Warner Backus
-* Gemini
-* Claude
-* Copilot
-* The Collective Consciousness

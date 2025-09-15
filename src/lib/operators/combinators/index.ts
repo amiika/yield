@@ -14,6 +14,7 @@ import { cleave } from './cleave';
 import { cond } from './cond';
 import { body } from './body';
 import { yieldOp } from './yield';
+import { chain } from './chain';
 import type { Category } from '../../types';
 
 export const combinators: Category = {
@@ -36,5 +37,6 @@ export const combinators: Category = {
         cond,
         body,
         'yield': yieldOp,
+        chain,
     }
 };

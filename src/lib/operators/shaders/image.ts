@@ -17,14 +17,14 @@ export const image: Operator = {
         {
             code: `# Standalone 2D image: A simple color gradient
 (
-  uv # use normalized coordinates
-  dup x # use uv.x for red
-  swap y # use uv.y for green
-  0.5    # blue
-  1.0    # alpha
+  uv       # use the explicit uv operator for normalized coords
+  dup x    # use uv.x for red
+  swap y   # use uv.y for green
+  0.5      # blue
+  1.0      # alpha
   vec4
 ) image render`,
-            assert: s => s[0]?.type === 'shader' && s[0].code.includes('fragColor = vec4(uv.x, uv.y, 0.5, 1.0);'),
+            assert: s => s[0]?.type === 'shader' && s[0].code.includes('vec4((gl_FragCoord.xy / u_resolution.xy).x, (gl_FragCoord.xy / u_resolution.xy).y, 0.5, 1.0)'),
             expectedDescription: 'A shader object that creates a color gradient.'
         },
         {

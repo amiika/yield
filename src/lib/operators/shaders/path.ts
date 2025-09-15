@@ -1,6 +1,4 @@
 
-
-
 import type { Operator, SceneObject, GLSLExpression } from '../../types';
 import { generatePathShader } from './glsl-generator';
 
@@ -115,7 +113,9 @@ march
 # 3. A GLSL expression to control the view with the mouse
 # Normalizes mouse coords to [-1, 1] range to be used as view offsets
 (
-  mouse u_resolution / 0.5 - 2.0 *
+  mousex width / 0.5 - 2.0 *
+  mousey height / 0.5 - 2.0 *
+  vec2
 ) glsl
 
 # 4. Create the interactive tour
@@ -140,8 +140,10 @@ march
 # 3. A GLSL expression to control the view with the mouse when held down
 # Normalizes mouse coords to [-1, 1] range to be used as view offsets
 (
-  moused u_resolution / 0.5 - 2.0 *
-  u_moused.z # Only apply lookaround when mouse is down
+  mousedx width / 0.5 - 2.0 *
+  mousedy height / 0.5 - 2.0 *
+  vec2
+  moused? # Only apply lookaround when mouse is down
   *
 ) glsl
 

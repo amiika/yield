@@ -1,48 +1,54 @@
+
 import type { Operator } from '../../types';
+
+const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string';
 
 export const mt: Operator = {
     definition: {
         exec: function*(s) {
-            let gate;
-            if (s.length > 0 && Array.isArray(s[s.length - 1])) {
-                gate = s.pop();
+            let gateQuotation: any[];
+            if (s.length > 0 && isAudioQuotation(s[s.length - 1])) {
+                gateQuotation = s.pop() as any[];
             } else {
-                gate = ['oneshot'];
+                gateQuotation = [0.001, 0.3, 0.0, 'gate_env'];
             }
 
-            // --- Parameters ---
             const base_freq = 180;
-
-            // --- Graph ---
-
-            // Pitch envelope. Gate is shallow-cloned to ensure a separate state.
-            const pitch_env = ['ad', [...gate], 0.001, 0.08];
-            const freq = ['mix', base_freq, ['mul', pitch_env, base_freq * 1.5]];
-
-            // Oscillator
-            const osc = ['sine', freq];
-
-            // Amplitude envelope
-            const amp_env = ['ad', gate, 0.001, 0.3];
-            
-            // Final Output
-            const final_sound = ['mul', ['mul', osc, amp_env], 0.9];
+            const pitch_env = [...gateQuotation, 0.001, 0.08, 'ad'];
+            const freq = [...pitch_env, base_freq * 1.5, 'mul', base_freq, 'mix'];
+            const osc = [...freq, 'sine'];
+            const amp_env = [...gateQuotation, 0.001, 0.3, 'ad'];
+            const final_sound = [...osc, ...amp_env, 'mul', 0.9, 'mul'];
             
             s.push(final_sound);
         },
-        description: 'Creates a mid tom synth node. If a gate signal is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
-        effect: '[L_gate]? -> [L_graph]'
+        description: 'Creates a mid tom synth quotation. If a gate signal quotation is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
+        effect: '[L_gate_quotation]? -> [L_quotation]'
     },
     examples: [
         { 
-            code: 'mt play',
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: 'mt 0.25 play',
+            expected: []
         },
         { 
-            code: '2 impulse mt play',
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: '2 impulse mt start',
+            expected: []
         },
-    ]
+        {
+            replCode: `
+# A mid tom fill using a 3-against-16 Euclidean rhythm, offset slightly
+120 tempo
+16 impulse        # 16th note clock
+3 16 euclidean seq # The euclidean rhythm
+mt                # Gate the mid tom with the sequence
+0.0625 0 delay    # Delay by a 32nd note for a syncopated feel
+0.9 mul start`,
+            async: {
+                duration: 500,
+                assert: s => s.length === 0,
+                assertDescription: "Stack should be empty after starting the audio."
+            }
+        }
+    ],
+    keywords: ['drum', 'drumkit', 'tom', 'mid tom'],
 };

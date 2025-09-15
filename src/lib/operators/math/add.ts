@@ -1,12 +1,29 @@
+
 import type { Operator, GLSLExpression } from '../../types';
 import { applyBinaryOp, isFlatList, toGLSL } from '../../utils';
 
 const isGLSLExpression = (v: any): v is GLSLExpression => v?.type === 'glsl_expression';
 
+// Helper to identify audio quotations.
+const audioOps = new Set(['sine', 'saw', 'pulse', 'tri', 'noise', 'impulse', 'note', 'lpf', 'hpf', 'ad', 'adsr', 'delay', 'distort', 'pan', 'mix', 'mul', 'fm_simple', 'fm_synth', 'bd', 'sd', 'lt', 'mt', 'ht', 'hh', 'seq', 'bytebeat', 'floatbeat']);
+const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string' && audioOps.has(v[v.length - 1]);
+
 export const add: Operator = {
     definition: {
         exec: function*(s) {
-            // Check for GLSL composition first, as it's a special case that works on the top two items.
+            // Check for audio composition first.
+            if (s.length >= 2) {
+                const b = s[s.length - 1];
+                const a = s[s.length - 2];
+                if (isAudioQuotation(a) || isAudioQuotation(b)) {
+                    s.pop();
+                    s.pop();
+                    s.push([a, b, 'mix']);
+                    return;
+                }
+            }
+
+            // Check for GLSL composition.
             if (s.length >= 2) {
                 const b = s[s.length - 1];
                 const a = s[s.length - 2];
@@ -63,7 +80,7 @@ export const add: Operator = {
                 s.push(result);
             }
         },
-        description: 'Adds two values. If both are numbers, it performs addition. If a scalar and an aggregate (list/matrix) are involved, it performs broadcasting, returning a new aggregate. If two aggregates are involved, it performs a recursive, "sideways" (outer product) addition, spreading flat lists back onto the stack. If only one argument is on the stack and it is a list, it reduces the list by addition.',
+        description: 'Adds two values. If they are audio quotations, it mixes them. If both are numbers, it performs addition. If a scalar and an aggregate (list/matrix) are involved, it performs broadcasting, returning a new aggregate. If two aggregates are involved, it performs a recursive, "sideways" (outer product) addition, spreading flat lists back onto the stack. If only one argument is on the stack and it is a list, it reduces the list by addition.',
         effect: '[A B] -> [C] or [[A B C]] -> ...'
     },
     examples: [

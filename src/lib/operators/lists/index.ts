@@ -1,4 +1,6 @@
 
+
+
 import { cons } from './cons';
 import { append } from './append';
 import { uncons } from './uncons';
@@ -13,11 +15,11 @@ import { take } from './take';
 import { concat } from './concat';
 import { join } from './join';
 import { pick } from './pick';
-import { setlist } from './setlist';
 import { zip } from './zip';
 import { range } from './range';
 import { swizzle } from './swizzle';
 import { list } from '../advancedStack/list';
+import { euclidean } from './euclidean';
 import type { Category } from '../../types';
 
 export const lists: Category = {
@@ -38,10 +40,10 @@ export const lists: Category = {
         concat,
         join,
         pick,
-        setlist,
         zip,
         range,
         swizzle,
         list,
+        euclidean,
     }
 };

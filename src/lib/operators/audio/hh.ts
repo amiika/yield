@@ -1,46 +1,54 @@
+
 import type { Operator } from '../../types';
+
+const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string';
 
 export const hh: Operator = {
     definition: {
         exec: function*(s) {
-            let gate;
-            if (s.length > 0 && Array.isArray(s[s.length - 1])) {
-                gate = s.pop();
+            let gateQuotation: any[];
+            if (s.length > 0 && isAudioQuotation(s[s.length - 1])) {
+                gateQuotation = s.pop() as any[];
             } else {
-                gate = ['oneshot'];
+                gateQuotation = [0.001, 0.05, 0.0, 'gate_env'];
             }
 
-            // --- Parameters ---
-            const decay = 0.05;   // Very short decay for a closed hat
-            const cutoff = 8000;  // High-pass filter cutoff
+            const decay = 0.05;
+            const cutoff = 8000;
             const gain = 0.5;
 
-            // --- Graph ---
-
-            // 1. Envelope
-            const amp_env = ['ad', gate, 0.001, decay];
-
-            // 2. Noise Source + High-Pass Filter
-            const filtered_noise = ['hpf', ['noise'], cutoff, 0.1];
-
-            // 3. Final Output
-            const final_sound = ['mul', ['mul', filtered_noise, amp_env], gain];
+            const amp_env = [...gateQuotation, 0.001, decay, 'ad'];
+            const filtered_noise = ['noise', cutoff, 0.1, 'hpf'];
+            const final_sound = [...filtered_noise, ...amp_env, 'mul', gain, 'mul'];
 
             s.push(final_sound);
         },
-        description: 'Creates a closed hi-hat synth node. If a gate signal is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
-        effect: '[L_gate]? -> [L_graph]'
+        description: 'Creates a closed hi-hat synth quotation. If a gate signal quotation is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
+        effect: '[L_gate_quotation]? -> [L_quotation]'
     },
     examples: [
         {
-            code: 'hh play',
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: 'hh 0.25 play',
+            expected: []
         },
         {
-            code: '8 impulse hh play',
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: '8 impulse hh start',
+            expected: []
         },
-    ]
+        {
+            replCode: `
+# A syncopated hi-hat pattern using a 7-against-16 Euclidean rhythm
+120 tempo
+16 impulse        # 16th note clock
+7 16 euclidean seq # The euclidean rhythm
+hh                # Gate the hi-hat with the sequence
+0.5 mul start`,
+            async: {
+                duration: 500,
+                assert: s => s.length === 0,
+                assertDescription: "Stack should be empty after starting the audio."
+            }
+        }
+    ],
+    keywords: ['drum', 'drumkit', 'hi-hat', 'cymbal'],
 };

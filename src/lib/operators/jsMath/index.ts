@@ -1,3 +1,4 @@
+
 import { acos } from './acos';
 import { asin } from './asin';
 import { atan } from './atan';
@@ -16,6 +17,7 @@ import { sqrt } from './sqrt';
 import { tan } from './tan';
 import { tanh } from './tanh';
 import { trunc } from './trunc';
+import { clamp } from './clamp';
 import type { Category } from '../../types';
 
 export const jsMath: Category = {
@@ -40,5 +42,6 @@ export const jsMath: Category = {
         tan,
         tanh,
         trunc,
+        clamp,
     }
 };

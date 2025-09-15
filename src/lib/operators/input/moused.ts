@@ -28,7 +28,7 @@ export const moused: Operator = {
     (p xy) glsl
     
     # The 'c' parameter, controlled by the mousedown position normalized to [-1, 1]
-    (moused u_resolution / 0.5 - 2.0 *) glsl
+    (moused (width height vec2) / 0.5 - 2.0 *) glsl
     
     # The radius/zoom level
     1.0

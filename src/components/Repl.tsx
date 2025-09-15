@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Yield } from '../lib/yield-interpreter';
 import { yieldFormatter, deepEqual } from '../lib/utils';
@@ -157,6 +158,7 @@ export const Repl = () => {
     const historyManagerRef = useRef<IHistoryManager | null>(null);
     const historyIdCounter = useRef(0);
     const didEmitInTick = useRef(false);
+    const ranFromSessionStorage = useRef(false);
 
     // --- Effects ---
 
@@ -204,13 +206,13 @@ export const Repl = () => {
             return;
         }
         
-        // It's an error or a different async output like 'emit'.
+        // It's an error or a different async output like 'print'.
         let finalOutput = trimmedOutput;
         if (isError) {
              const stackOutput = `( ${sessionStack.map(yieldFormatter).join(' ')} )`;
              finalOutput = `${trimmedOutput}\n${stackOutput}`;
         } else {
-            // It was a non-error, non-tick output, so it's from emit.
+            // It was a non-error, non-tick output, so it's from print.
             didEmitInTick.current = true;
         }
         
@@ -279,7 +281,7 @@ export const Repl = () => {
         }
     }, [handleAsyncOutput]);
 
-    const runSingleCommand = async (command: string) => {
+    const runCommand = useCallback(async (command: string) => {
         if (!command.trim()) {
             const stackOutput = `( ${sessionStack.map(yieldFormatter).join(' ')} )`;
             const newHistoryEntry: HistoryEntry = { type: 'command', command, output: stackOutput, isError: false, id: historyIdCounter.current++ };
@@ -425,25 +427,33 @@ export const Repl = () => {
             }
             setDictionaryVersion(v => v + 1);
         }
-    };
+    }, [isGodMode, commandHistory, handleAsyncOutput]);
     
-    const handleRun = async (commandBlock: string) => {
+    const handleRun = useCallback(async (commandBlock: string) => {
         if (showWelcome) {
             setShowWelcome(false);
         }
         setLiveOutput(null);
     
-        const lines = commandBlock.split('\n');
-    
         setIsRunning(true);
-        for (const line of lines) {
-            // Await each line's execution to ensure sequential processing and correct history.
-            await runSingleCommand(line);
-        }
+        // Await the whole block's execution to ensure correct parsing of multi-line programs.
+        await runCommand(commandBlock);
         setIsRunning(false);
         setLiveOutput(null);
         setTimeout(() => inputRef.current?.focus(), 0);
-    };
+    }, [showWelcome, runCommand]);
+
+    useEffect(() => {
+        // Only run once on mount
+        if (ranFromSessionStorage.current) return;
+
+        const codeToRun = sessionStorage.getItem('yield_repl_code');
+        if (codeToRun) {
+            ranFromSessionStorage.current = true;
+            sessionStorage.removeItem('yield_repl_code');
+            handleRun(codeToRun);
+        }
+    }, [handleRun]);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInput(e.target.value);

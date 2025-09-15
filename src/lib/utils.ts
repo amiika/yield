@@ -1,4 +1,3 @@
-
 // --- Utility Helpers ---
 import type { MarchingObject, ColorObject, GLSLExpression } from './types';
 
@@ -271,6 +270,19 @@ const jsArityMap = {
     'ifte': 3,
 };
 
+// Helper for GLSL transpilation to convert float values used as booleans
+const boolifyGLSL = (expr: string): string => {
+    // These are known float uniforms that are used as booleans
+    if (expr === 'u_moused.z') {
+        return `(${expr} > 0.5)`;
+    }
+    // A simple regex to check if it's a number literal like 1.0 or 0.0
+    if (/^-?\d+(\.\d*)?$/.test(expr)) {
+        return `(${expr} != 0.0)`;
+    }
+    return expr;
+};
+
 const glslOpMap = {
     // Math (RPN: A B -> op -> (A op B))
     '+': (b, a) => `(${a} + ${b})`,
@@ -286,8 +298,8 @@ const glslOpMap = {
     '==': (b, a) => `(${a} == ${b})`,
     '!=': (b, a) => `(${a} != ${b})`,
     // Ternary - RPN: B T F -> ? -> B ? T : F
-    '?': (c, b, a) => `(${a} ? ${b} : ${c})`,
-    'ifte': (c, b, a) => `(${a} ? ${b} : ${c})`,
+    '?': (c, b, a) => `(${boolifyGLSL(a)} ? ${b} : ${c})`,
+    'ifte': (c, b, a) => `(${boolifyGLSL(a)} ? ${b} : ${c})`,
     // GLSL built-ins
     'sin': (a) => `sin(${a})`,
     'cos': (a) => `cos(${a})`,
@@ -426,6 +438,7 @@ export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, 
     const program = [...quotation]; // Make a copy
 
     const isSimpleVar = (s: string) => /^[a-zA-Z_][a-zA-Z0-9_]*(\.[xyzw]{1,4})*$/.test(s);
+    const isAlreadyParenthesized = (s: string) => s.startsWith('(') && s.endsWith(')');
 
     while (program.length > 0) {
         // Lookahead for the `( ... ) glsl` pattern to handle it as a single unit.
@@ -470,6 +483,10 @@ export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, 
                     if (token === 'moused') mappedToken = 'u_moused.xy';
                     if (token === 'mousedx') mappedToken = 'u_moused.x';
                     if (token === 'mousedy') mappedToken = 'u_moused.y';
+                    if (token === 'moused?') mappedToken = 'u_moused.z';
+                    if (token === 'width') mappedToken = 'u_resolution.x';
+                    if (token === 'height') mappedToken = 'u_resolution.y';
+                    if (token === 'uv') mappedToken = '(gl_FragCoord.xy / u_resolution.xy)';
                 }
                 stack.push(mappedToken);
                 continue;
@@ -507,17 +524,62 @@ export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, 
                 stack.push(stack[stack.length - 1]);
                 continue;
             }
+            if (token === 'dupd') {
+                if (stack.length < 2) throw new Error(`Stack underflow for 'dupd' in quotation.`);
+                const y = stack.pop();
+                const x = stack[stack.length - 1];
+                stack.push(x, y);
+                continue;
+            }
+            if (token === 'over') {
+                if (stack.length < 2) throw new Error(`Stack underflow for 'over' in quotation.`);
+                stack.push(stack[stack.length - 2]);
+                continue;
+            }
             if (token === 'swap') {
                 if (stack.length < 2) throw new Error(`Stack underflow for 'swap' in quotation.`);
                 const b = stack.pop();
                 const a = stack.pop();
-                stack.push(b, a); // Correct order for swap
+                stack.push(b, a);
+                continue;
+            }
+            if (token === 'swapd') {
+                if (stack.length < 3) throw new Error(`Stack underflow for 'swapd' in quotation.`);
+                const c = stack.pop();
+                const b = stack.pop();
+                const a = stack.pop();
+                stack.push(b, a, c);
+                continue;
+            }
+            if (token === 'tuck') {
+                if (stack.length < 2) throw new Error(`Stack underflow for 'tuck' in quotation.`);
+                const y = stack.pop();
+                const x = stack.pop();
+                stack.push(y, x, y);
                 continue;
             }
             if (token === 'rolldown') {
                 if (stack.length < 3) throw new Error(`Stack underflow for 'rolldown' in quotation.`);
-                const [z, y, x] = [stack.pop(), stack.pop(), stack.pop()];
+                const z = stack.pop();
+                const y = stack.pop();
+                const x = stack.pop();
                 stack.push(y, z, x);
+                continue;
+            }
+            if (token === 'rollup') {
+                if (stack.length < 3) throw new Error(`Stack underflow for 'rollup' in quotation.`);
+                const z = stack.pop();
+                const y = stack.pop();
+                const x = stack.pop();
+                stack.push(z, x, y);
+                continue;
+            }
+            if (token === 'rotate') {
+                if (stack.length < 3) throw new Error(`Stack underflow for 'rotate' in quotation.`);
+                const z = stack.pop();
+                const y = stack.pop();
+                const x = stack.pop();
+                stack.push(z, y, x);
                 continue;
             }
             if (token === 'pop') {
@@ -525,13 +587,20 @@ export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, 
                 stack.pop();
                 continue;
             }
+            if (token === 'popd') {
+                if (stack.length < 2) throw new Error(`Stack underflow for 'popd' in quotation.`);
+                const y = stack.pop();
+                stack.pop();
+                stack.push(y);
+                continue;
+            }
 
             const isSwizzle = isGLSLTarget && /^[xyzw]{1,4}$/.test(token);
             if (isSwizzle) {
                 if (stack.length < 1) throw new Error(`Stack underflow for swizzle operator '${token}'.`);
                 const prev = stack.pop();
-                // Avoid double parentheses on simple variables, but add them for complex expressions
-                const base = isSimpleVar(prev) ? prev : `(${prev})`;
+                // Avoid double parentheses on simple variables or already-parenthesized expressions
+                const base = isSimpleVar(prev) || isAlreadyParenthesized(prev) ? prev : `(${prev})`;
                 stack.push(`${base}.${token}`);
                 continue;
             }
@@ -565,9 +634,9 @@ export const transpileJS = (quotation: any[]) => {
 
 export const transpileGLSL = (quotation: any[]) => {
     const specialVars = new Set([
-        'p', 't', 'uv',
+        'p', 't', 'uv', 'width', 'height',
         'mouse', 'mousex', 'mousey', 
-        'moused', 'mousedx', 'mousedy', 'u_moused', 'u_moused.z',
+        'moused', 'mousedx', 'mousedy', 'moused?',
         'u_resolution'
     ]);
     return transpileQuotation(quotation, glslOpMap, glslArityMap, specialVars, true);

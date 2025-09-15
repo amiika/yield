@@ -29,10 +29,24 @@ export const mousey: Operator = {
   
   # Apply gain
   *
-) 44100 floatbeat play
+) 44100 floatbeat
 `,
-            assert: s => Array.isArray(s[0]) && s[0][0] === 'floatbeat',
-            expectedDescription: 'An interactive audio graph where mouse Y controls volume.'
+            replCode: `
+# A simple theremin-like instrument where volume is controlled by mouse-y
+(
+  # A static 440Hz sine wave tone
+  t 44100 / 440 * 2 * 3.14159 * sin
+  
+  # Calculate gain from mouse-y, inverting so up=louder
+  # and clamping to a safe 0-1 range
+  1.0 mousey 800 / - 0.0 1.0 clamp
+  
+  # Apply gain
+  *
+) 44100 floatbeat start
+`,
+            assert: s => s.length === 0,
+            expectedDescription: 'Stack should be empty after playing.'
         }
     ]
 };

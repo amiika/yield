@@ -1,3 +1,4 @@
+
 import { trueOp } from './true';
 import { falseOp } from './false';
 import { maxint } from './maxint';
@@ -5,7 +6,7 @@ import { stack } from './stack';
 import { clock } from './clock';
 import { rand } from './rand';
 import { clearall } from './clearall';
-import { t } from './t';
+import { time } from './t';
 import type { Category } from '../../types';
 
 export const literals: Category = {
@@ -19,6 +20,7 @@ export const literals: Category = {
         clock,
         rand,
         clearall,
-        t,
+        time,
+        t: time,
     }
 };

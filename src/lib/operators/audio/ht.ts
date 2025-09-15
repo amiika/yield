@@ -1,48 +1,53 @@
+
 import type { Operator } from '../../types';
+
+const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string';
 
 export const ht: Operator = {
     definition: {
         exec: function*(s) {
-            let gate;
-            if (s.length > 0 && Array.isArray(s[s.length - 1])) {
-                gate = s.pop();
+            let gateQuotation: any[];
+            if (s.length > 0 && isAudioQuotation(s[s.length - 1])) {
+                gateQuotation = s.pop() as any[];
             } else {
-                gate = ['oneshot'];
+                gateQuotation = [0.001, 0.3, 0.0, 'gate_env'];
             }
 
-            // --- Parameters ---
             const base_freq = 250;
-
-            // --- Graph ---
-
-            // Pitch envelope. Gate is shallow-cloned to ensure a separate state.
-            const pitch_env = ['ad', [...gate], 0.001, 0.08];
-            const freq = ['mix', base_freq, ['mul', pitch_env, base_freq * 1.5]];
-
-            // Oscillator
-            const osc = ['sine', freq];
-
-            // Amplitude envelope
-            const amp_env = ['ad', gate, 0.001, 0.3];
-            
-            // Final Output
-            const final_sound = ['mul', ['mul', osc, amp_env], 0.9];
+            const pitch_env = [...gateQuotation, 0.001, 0.08, 'ad'];
+            const freq = [...pitch_env, base_freq * 1.5, 'mul', base_freq, 'mix'];
+            const osc = [...freq, 'sine'];
+            const amp_env = [...gateQuotation, 0.001, 0.3, 'ad'];
+            const final_sound = [...osc, ...amp_env, 'mul', 0.9, 'mul'];
             
             s.push(final_sound);
         },
-        description: 'Creates a high tom synth node. If a gate signal is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
-        effect: '[L_gate]? -> [L_graph]'
+        description: 'Creates a high tom synth quotation. If a gate signal quotation is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
+        effect: '[L_gate_quotation]? -> [L_quotation]'
     },
     examples: [
         { 
-            code: 'ht play',
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: 'ht 0.25 play',
+            expected: []
         },
         { 
-            code: '2 impulse ht play',
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: '2 impulse ht start',
+            expected: []
         },
-    ]
+        {
+            replCode: `
+# A high tom pattern using a 4-against-15 Euclidean rhythm for a polyrhythmic feel
+120 tempo
+15 impulse        # A clock based on 15 steps
+4 15 euclidean seq # The euclidean rhythm
+ht                # Gate the high tom with the sequence
+0.9 mul start`,
+            async: {
+                duration: 500,
+                assert: s => s.length === 0,
+                assertDescription: "Stack should be empty after starting the audio."
+            }
+        }
+    ],
+    keywords: ['drum', 'drumkit', 'tom', 'high tom'],
 };

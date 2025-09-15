@@ -1,5 +1,5 @@
 import { cr } from './cr';
-import { emit } from './emit';
+import { print } from './emit';
 import { save } from './save';
 import { load } from './load';
 import { ls } from './ls';
@@ -11,7 +11,7 @@ export const repl: Category = {
     description: "Operators for interacting with the REPL environment.",
     definitions: {
         cr,
-        emit,
+        print,
         save,
         load,
         ls,

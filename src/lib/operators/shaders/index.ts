@@ -1,7 +1,5 @@
 
 
-
-
 import type { Category } from '../../types';
 
 // Scene
@@ -36,10 +34,10 @@ import { glsl } from './glsl';
 import { fbm } from './fbm';
 import { cloud } from './cloud';
 import { texture } from './texture';
-import { fuse } from './mix';
 import { smoothstep } from './smoothstep';
 import { color } from './color';
 import { image } from './image';
+import { fuse } from './fuse';
 
 // Post-processing effects
 import { invert } from './invert';
@@ -52,6 +50,10 @@ import { vec } from './vec';
 import { vec2 } from './vec2';
 import { vec3 } from './vec3';
 import { vec4 } from './vec4';
+import { width } from './width';
+import { height } from './height';
+import { uv } from './uv';
+import { position } from './p';
 
 // Geometries
 import { box } from './box';
@@ -176,6 +178,7 @@ export const shaders: Category = {
         color,
         curl,
         fbm,
+        fuse,
         glsl,
         hsv,
         image,
@@ -189,7 +192,6 @@ export const shaders: Category = {
         wavecolor,
         worley,
         voronoi,
-        fuse,
         smoothstep,
 
         // Post-processing effects
@@ -203,6 +205,11 @@ export const shaders: Category = {
         vec2,
         vec3,
         vec4,
+        width,
+        height,
+        uv,
+        position,
+        p: position,
         
         // Geometries
         box,

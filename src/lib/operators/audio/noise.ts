@@ -1,3 +1,5 @@
+
+
 import type { Operator } from '../../types';
 
 export const noise: Operator = {
@@ -5,11 +7,17 @@ export const noise: Operator = {
         exec: function*(s) {
             s.push(['noise']);
         },
-        description: 'Creates a white noise generator node.',
-        effect: '[] -> [L_graph]'
+        description: 'Creates a white noise generator quotation.',
+        effect: '[] -> [L_quotation]'
     },
     examples: [
-        { code: "noise 0.2 mul play", expected: [['mul', ['noise'], 0.2]] },
-        { code: 'noise', expected: [['noise']] },
+        { 
+            code: "noise 0.5 mul 0.5 play",
+            expected: []
+        },
+        { 
+            code: "noise",
+            expected: [['noise']]
+        },
     ]
 };

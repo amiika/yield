@@ -1,6 +1,11 @@
 
 
-import { play } from './play';
+
+
+
+
+
+import { play, start } from './play';
 import { sine } from './sine';
 import { saw } from './saw';
 import { pulse } from './pulse';
@@ -9,14 +14,16 @@ import { lpf } from './lpf';
 import { hpf } from './hpf';
 import { ad } from './ad';
 import { adsr } from './adsr';
+import { ahr } from './ahr';
 import { delay } from './delay';
 import { distort } from './distort';
 import { pan } from './pan';
 import { note } from './note';
 import { seq } from './seq';
+import { noteseq } from './noteseq';
 import { impulse } from './impulse';
-import { mix } from './audio-add';
-import { mul } from './audio-mul';
+import { mix } from './mix';
+import { mul } from './mul';
 import { ctrl } from './ctrl';
 import { hush } from './hush';
 import { bd } from './bd';
@@ -28,8 +35,13 @@ import { hh } from './hh';
 import { bytebeat } from './bytebeat';
 import { floatbeat } from './floatbeat';
 import { tri } from './tri';
-import { voices } from './voices';
+import { poly } from './voices';
 import { fm } from './fm';
+import { gate } from './gate';
+import { synth } from './fm-patches';
+import { transpileAudio } from './transpile-audio';
+import { oneshot } from './oneshot';
+import { arp } from './arp';
 import type { Category } from '../../types';
 
 export const audio: Category = {
@@ -38,6 +50,8 @@ export const audio: Category = {
     definitions: {
         ad,
         adsr,
+        ahr,
+        arp,
         bd,
         bytebeat,
         ctrl,
@@ -45,6 +59,7 @@ export const audio: Category = {
         distort,
         floatbeat,
         fm,
+        gate,
         hh,
         hpf,
         ht,
@@ -57,14 +72,19 @@ export const audio: Category = {
         'mul': mul,
         noise,
         note,
+        noteseq,
+        oneshot,
         pan,
         play,
+        poly,
         pulse,
         saw,
         sd,
         seq,
         sine,
+        start,
+        synth,
+        'transpile-audio': transpileAudio,
         tri,
-        voices,
     }
 };

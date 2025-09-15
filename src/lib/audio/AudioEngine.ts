@@ -199,7 +199,7 @@ class AudioEngine {
         this.scheduledCallbacks.delete(id);
     }
     
-    public play(graph: any[], sourceId?: string): string {
+    public play(graph: any[], sourceId?: string, duration?: number): string {
         if (this.isMuted) return '';
         if (!this.isInitialized || !this.workletNode) return '';
     
@@ -220,8 +220,13 @@ class AudioEngine {
         if (sourceId) {
             this.sourceVoices.set(sourceId, id);
         }
+        
+        const message: any = { command: 'play', id, graph: graphToPlay, params };
+        if (duration !== undefined) {
+            message.duration = duration;
+        }
     
-        this.workletNode.port.postMessage({ command: 'play', id, graph: graphToPlay, params });
+        this.workletNode.port.postMessage(message);
         return id;
     }
     
@@ -267,6 +272,16 @@ class AudioEngine {
         this.scheduledCallbacks.clear();
         if (this.workletNode) {
             this.workletNode.port.postMessage({ command: 'stopAll' });
+            const allIds = Array.from(this.sourceVoices.values());
+            this.sourceVoices.clear();
+            return allIds;
+        }
+        return [];
+    }
+
+    public fadeOutAll(): string[] {
+        if (this.workletNode) {
+            this.workletNode.port.postMessage({ command: 'fadeOutAll' });
             const allIds = Array.from(this.sourceVoices.values());
             this.sourceVoices.clear();
             return allIds;

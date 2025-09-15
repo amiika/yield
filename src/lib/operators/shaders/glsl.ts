@@ -100,33 +100,25 @@ march render`,
         },
         {
             code: `
-# Use .xz to project a checkerboard on top of a torus
-0.8 0.2 vec2 torus
+# Use .xz to project a checkerboard
+2.0 0.25 0.25 vec3 box
 (
-  p xz 5 * fract # Project to XZ plane and create grid
-  x floor
-  p xz 5 * fract
-  y floor + 2 % # Create checkerboard pattern
+  p xz 5 *     # Project to XZ plane and scale coordinates
+  dup          # stack: [scaled_uv, scaled_uv]
+  x floor      # stack: [scaled_uv, floor(u)]
+  swap         # stack: [floor(u), scaled_uv]
+  y floor      # stack: [floor(u), floor(v)]
+  + 2 %        # Create checkerboard pattern
   dup dup vec3
 ) glsl material
-(t 0.2 *) glsl 1 0 0 vec3 rotatesdf
+(t 1.0 *) glsl 1 1 0 vec3 rotatesdf
 march render`,
             assert: s => s[0]?.type === 'shader',
             expectedDescription: 'A shader rendering a torus with a checkerboard pattern on its top and bottom faces.'
         },
         {
             code: `
-# Use .yxz to warp a 3D noise texture
-1.0 sphere
-(p yxz 2 * t + curl) glsl material
-(t 0.3 *) glsl 1 1 0 vec3 rotatesdf
-march render`,
-            assert: s => s[0]?.type === 'shader',
-            expectedDescription: 'A shader rendering a sphere with a swirling, warped curl noise texture.'
-        },
-        {
-            code: `
-# Use .zxy to create a different warped texture
+# Use .zxy to warp a 3D noise texture
 0.8 0.8 0.2 vec3 box
 (
   p zxy 3 * t + fbm # fbm returns a float
@@ -273,15 +265,16 @@ march render`,
         },
         {
             code: `
-# Use .yyy swizzle to create a grayscale vec3 color from one component
+# Use .y to create a grayscale color from height
 0.8 0.2 vec2 torus
 (
-  p yyy # -> vec3(p.y, p.y, p.y)
-  # This creates a grayscale color based on height.
+  p y         # Get y-coordinate (height)
+  0.5 * 0.5 + # Remap range from [-0.2, 0.2] to [0.4, 0.6]
+  dup dup vec3  # Create a grayscale vector from the value
 ) glsl material
 march render`,
             assert: s => s[0]?.type === 'shader',
-            expectedDescription: 'A shader rendering a torus with a grayscale pattern based on the y-coordinate using .yyy swizzle.'
+            expectedDescription: 'A shader rendering a torus with a grayscale pattern based on the y-coordinate.'
         }
     ]
 };

@@ -1,6 +1,6 @@
 import type { Operator } from '../../types';
 
-export const emit: Operator = {
+export const print: Operator = {
     definition: {
         exec: function*(s, options) {
             const output = String(s.pop());
@@ -14,6 +14,6 @@ export const emit: Operator = {
         effect: '[S] -> []'
     },
     examples: [
-        { code: '"Hello" emit', expected: [] }
+        { code: '"Hello" print', expected: [] }
     ]
 };

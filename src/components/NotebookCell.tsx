@@ -29,6 +29,13 @@ const DebugIcon = () => (
     </svg>
 );
 
+const TerminalIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 12h4.5" />
+    </svg>
+);
+
 interface NotebookCellProps {
     cellData: any;
     compact?: boolean;
@@ -156,6 +163,12 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
 
     const handlePrevExample = () => {
         setExampleIndex(prev => (prev - 1 + examples.length) % examples.length);
+    };
+
+    const handleRunInRepl = () => {
+        const codeToRun = getCodeFromExample(currentExample);
+        sessionStorage.setItem('yield_repl_code', codeToRun);
+        window.location.hash = '#/repl';
     };
 
     const handleStop = () => {
@@ -469,6 +482,14 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
                             title="Toggle Debug Mode"
                         >
                             <DebugIcon />
+                        </button>
+                        <button
+                            onClick={handleRunInRepl}
+                            className="control-btn p-1 rounded-full hover:bg-gray-200 text-gray-600"
+                            aria-label="Run in REPL"
+                            title="Run in REPL"
+                        >
+                            <TerminalIcon />
                         </button>
                     </div>
                 </div>

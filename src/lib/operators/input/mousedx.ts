@@ -18,18 +18,23 @@ export const mousedx: Operator = {
         },
         {
             code: `
-# Two spheres that will be blended
-0.5 sphere
-0.5 sphere 0.5 0 0 vec3 translate
+# A single circle
+0.5 circle2d
 
-# The smoothness of their union is controlled by the mousedown x-position
-(mousedx) glsl
-smoothUnion
+# Its X position is controlled by the mousedrag x-position
+# We normalize the coordinate to be in a [-2.5, 2.5] range
+(
+  (mousedx width / 0.5 -) 5.0 * # x
+  0.0                           # y
+  0.0                           # z
+  vec3
+) glsl
+translate
 
 :red material
 march render`,
             assert: s => s[0]?.type === 'shader' && s[0].code.includes('u_moused'),
-            expectedDescription: 'An interactive shader where dragging the mouse horizontally controls the smoothness of the blend between two spheres.'
+            expectedDescription: 'An interactive shader where clicking and dragging the mouse horizontally moves a circle left and right.'
         }
     ]
 };

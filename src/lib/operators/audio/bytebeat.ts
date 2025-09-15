@@ -1,5 +1,4 @@
 
-
 import type { Operator } from '../../types';
 import { transpileJS } from '../../utils';
 
@@ -17,26 +16,20 @@ export const bytebeat: Operator = {
                 s.push(quotation, frequency); // push back
                 throw new Error('bytebeat expects a frequency number.');
             }
-
-            try {
-                const code = transpileJS(quotation);
-                s.push(['bytebeat', code, frequency]);
-            } catch(e) {
-                // Add context to the transpiler error
-                throw new Error(`Error transpiling bytebeat quotation: ${e.message}`);
-            }
+            
+            const jsCode = transpileJS(quotation);
+            s.push([jsCode, frequency, 'bytebeat']);
         },
-        description: `Bytebeat node. Consumes a quotation with an RPN expression and a frequency. The expression is transpiled to JS and evaluated for every audio sample. The integer variable 't' (time) is available inside the quotation. The integer result of the formula is wrapped to 8 bits (0-255) and converted to an audio signal (-1 to 1).`,
-        effect: '[L_quotation F_frequency] -> [L_graph]'
+        description: `Bytebeat quotation. Consumes a quotation with an RPN expression and a frequency. When played, the expression is transpiled to JS and evaluated for every audio sample. The integer variable 't' (time) is available inside the quotation. The integer result of the formula is wrapped to 8 bits (0-255) and converted to an audio signal (-1 to 1).`,
+        effect: '[L_quotation F_frequency] -> [L_quotation]'
     },
     examples: [
         { 
             code: `
 # A simple bytebeat formula: t * 42
 # In RPN, this is "t 42 *"
-(t 42 *) 8000 bytebeat play`, 
-            assert: s => Array.isArray(s[0]) && s[0][0] === 'bytebeat',
-            expectedDescription: 'A bytebeat audio graph'
+(t 42 *) 8000 bytebeat start`, 
+            expected: []
         },
         {
             code: `
@@ -57,9 +50,8 @@ export const bytebeat: Operator = {
   
   # Part 4: Add them together
   +
-) 8000 bytebeat play`,
-            assert: s => s[0][0] === 'bytebeat',
-            expectedDescription: `A bytebeat audio graph from a complex formula.`
+) 8000 bytebeat start`,
+            expected: []
         },
         {
             code: `
@@ -71,17 +63,17 @@ export const bytebeat: Operator = {
   t
   
   # 2. (t&16384 ? 6 : 5) -> RPN: t 16384 & (6) (5) ?
-  t 16384 & (6) (5) ?
+  t 16384 & 6 5 ?
   
   # 3. Multiply 1 and 2
   *
   
   # 4. (3 + (3 & (t >> (t&2048?7:14))))
-  # 4a. (t&2048?7:14) -> t 2048 & (7) (14) ?
+  # 4a. (t&2048?7:14) -> t 2048 & 7 14 ?
   # 4b. t >> (4a) -> t (4a) >>
   # 4c. 3 & (4b) -> 3 (4b) &
   # 4d. 3 + (4c) -> 3 (4c) +
-  3 t t 2048 & (7) (14) ? >> 3 swap & +
+  3 t t 2048 & 7 14 ? >> 3 swap & +
 
   # 5. Multiply 3 and 4
   *
@@ -97,10 +89,9 @@ export const bytebeat: Operator = {
   
   # 9. Bitwise OR 7 and 8
   |
-) 8000 bytebeat play
+) 8000 bytebeat start
 `,
-            assert: s => s[0][0] === 'bytebeat',
-            expectedDescription: `A bytebeat audio graph from a very complex formula.`
+            expected: []
         },
         {
             code: `
@@ -109,9 +100,8 @@ export const bytebeat: Operator = {
   t mousex 100 / * # rhythm controlled by mousex
   t mousey 200 / *  # pitch controlled by mousey
   &
-) 8000 bytebeat play`,
-            assert: s => Array.isArray(s[0]) && s[0][0] === 'bytebeat',
-            expectedDescription: 'A bytebeat audio graph controlled by the mouse.'
+) 8000 bytebeat start`,
+            expected: []
         }
     ]
 };

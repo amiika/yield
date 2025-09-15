@@ -1,9 +1,11 @@
+
 import { mouse } from './mouse';
 import { mousex } from './mousex';
 import { mousey } from './mousey';
 import { moused } from './moused';
 import { mousedx } from './mousedx';
 import { mousedy } from './mousedy';
+import { mousedPredicate } from './mousedownPredicate';
 import type { Category } from '../../types';
 
 export const input: Category = {
@@ -16,5 +18,6 @@ export const input: Category = {
         moused,
         mousedx,
         mousedy,
+        'moused?': mousedPredicate,
     }
 };

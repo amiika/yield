@@ -18,6 +18,21 @@ export const infra: Operator = {
         effect: '[L1 [P]] -> [L2]'
     },
     examples: [
-        { code: '(10 20) (dup *) infra', expected: [[100, 20]] }
+        { code: '(10 20) (dup *) infra', expected: [[100, 20]] },
+        {
+            code: '(10 20 30) (pop) infra',
+            expected: [[20, 30]],
+            expectedDescription: "Implementing 'rest' with infra: pop the first element."
+        },
+        {
+            code: '(10 20 30) (succ) infra',
+            expected: [[11, 20, 30]],
+            expectedDescription: "Mapping the first element: apply 'succ' to the head of the list."
+        },
+        {
+            code: '(1 2 3) () swap infra',
+            expected: [[3, 2, 1]],
+            expectedDescription: "Reversing a list: The list to be reversed is used as the program, pushing its elements onto an empty list which serves as the temporary stack."
+        }
     ]
 };

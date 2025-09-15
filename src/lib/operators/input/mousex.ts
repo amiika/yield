@@ -26,9 +26,20 @@ export const mousex: Operator = {
   mousex 2 * 220 +    # Map mouse x-coord to a frequency range (e.g., 220-...)
   * 2 * 3.14159 * sin # Calculate sine wave for the frequency
 ) 44100 floatbeat     # Run the formula at 44.1kHz
-0.5 mul play          # Apply gain and play
+0.5 mul               # Apply gain
 `,
-            assert: s => Array.isArray(s[0]) && s[0][0] === 'mul',
+            replCode: `
+# A simple theremin-like instrument where pitch is controlled by mouse-x
+(
+  # t is the time variable in floatbeat
+  # mousex provides the window X coordinate
+  t 44100 /           # Convert sample index to seconds
+  mousex 2 * 220 +    # Map mouse x-coord to a frequency range (e.g., 220-...)
+  * 2 * 3.14159 * sin # Calculate sine wave for the frequency
+) 44100 floatbeat     # Run the formula at 44.1kHz
+0.5 mul               # Apply gain
+start`,
+            assert: s => s.length === 0,
             expectedDescription: 'An interactive audio graph where mouse X controls pitch.'
         }
     ]

@@ -18,20 +18,23 @@ export const mousedy: Operator = {
         },
         {
             code: `
-# A static sphere
-0.5 sphere
+# A single circle
+0.5 circle2d
 
-# A second sphere whose radius is controlled by the mousedown y-position
-(mousedy) glsl sphere
-0.5 0 0 vec3 translate
-
-# Blend them together
-0.1 smoothUnion
+# Its Y position is controlled by the mousedrag y-position
+# We normalize the coordinate to be in a [-2.5, 2.5] range
+(
+  0.0                             # x
+  (mousedy height / 0.5 -) 5.0 * # y
+  0.0                             # z
+  vec3
+) glsl
+translate
 
 :blue material
 march render`,
             assert: s => s[0]?.type === 'shader' && s[0].code.includes('u_moused'),
-            expectedDescription: 'An interactive shader where dragging the mouse vertically controls the size of one of the spheres.'
+            expectedDescription: 'An interactive shader where clicking and dragging the mouse vertically moves a circle up and down.'
         }
     ]
 };

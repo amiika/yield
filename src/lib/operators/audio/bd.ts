@@ -1,45 +1,59 @@
+
 import type { Operator } from '../../types';
+
+const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string';
 
 export const bd: Operator = {
     definition: {
         exec: function*(s) {
-            let gate;
-            // Check if top of stack is a potential gate signal (an array representing a graph node)
-            if (s.length > 0 && Array.isArray(s[s.length - 1])) {
-                gate = s.pop();
+            let gateQuotation: any[];
+            if (s.length > 0 && isAudioQuotation(s[s.length - 1])) {
+                gateQuotation = s.pop() as any[];
             } else {
-                // Otherwise, create a default single-shot trigger
-                gate = ['oneshot'];
+                gateQuotation = [0.001, 0.4, 0.0, 'gate_env'];
             }
 
-            // Pitch envelope - a fast sweep down. Gate is shallow-cloned to ensure a separate state.
-            const pitch_env = ['ad', [...gate], 0.001, 0.1];
-            const freq = ['mix', 60, ['mul', pitch_env, 200]];
-
+            // Pitch envelope
+            const pitch_env = [...gateQuotation, 0.001, 0.1, 'ad'];
+            const freq = [...pitch_env, 200, 'mul', 60, 'mix'];
+            
             // Oscillator
-            const osc = ['sine', freq];
-
+            const osc = [...freq, 'sine'];
+            
             // Amplitude envelope
-            const amp_env = ['ad', gate, 0.001, 0.4];
+            const amp_env = [...gateQuotation, 0.001, 0.4, 'ad'];
 
-            // Final sound with gain
-            const final_sound = ['mul', ['mul', osc, amp_env], 1.0];
+            // Final sound
+            const final_sound = [...osc, ...amp_env, 'mul', 1.0, 'mul'];
             
             s.push(final_sound);
         },
-        description: 'Creates a bass drum synth node. If a gate signal is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
-        effect: '[L_gate]? -> [L_graph]'
+        description: 'Creates a bass drum synth quotation. If a gate signal quotation is on the stack, it is used for triggering. Otherwise, the sound is triggered once immediately.',
+        effect: '[L_gate_quotation]? -> [L_quotation]'
     },
     examples: [
         { 
-            code: "bd play",
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: "bd 0.25 play",
+            expected: []
         },
         { 
-            code: '2 impulse bd play', 
-            assert: (s) => s.length === 1 && Array.isArray(s[0]) && s[0][0] === 'mul',
-            expectedDescription: 'A valid audio graph'
+            code: '2 impulse bd start',
+            expected: []
         },
-    ]
+        {
+            replCode: `
+# A classic 3-against-8 Tresillo rhythm for the bass drum
+120 tempo
+8 impulse         # 8th note clock
+3 8 euclidean seq # The euclidean rhythm
+bd                # Gate the bass drum with the sequence
+0.9 mul start`,
+            async: {
+                duration: 500,
+                assert: s => s.length === 0,
+                assertDescription: "Stack should be empty after starting the audio."
+            }
+        }
+    ],
+    keywords: ['drum', 'drumkit', 'kick', 'bass drum'],
 };

@@ -32,6 +32,7 @@ export interface OperatorDefinition {
 export interface Operator {
     definition: OperatorDefinition;
     examples: TestCase[];
+    keywords?: string[];
 }
 
 // A category of operators

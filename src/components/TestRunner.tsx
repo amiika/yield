@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Yield } from '../lib/yield-interpreter';
 import { yieldFormatter, deepEqual } from '../lib/utils';
@@ -197,15 +195,20 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
         console.warn("Could not initialize audio engine for test run.");
     }
     
-    // FIX: Add pre-test cleanup to ensure test isolation.
-    try {
-        await Yield.run(Yield.parse('hush'), [], {});
-    } catch(cleanupError) {
-        console.error("Error during pre-test cleanup:", cleanupError);
-    }
+    // Cleanup function to be called after each test.
+    const cleanup = async () => {
+        audioEngine.setMuted(false);
+        try {
+            // hush stops all audio and clears all live loops.
+            await Yield.run(Yield.parse('hush'), [], {});
+        } catch (cleanupError) {
+            console.error("Error during post-test cleanup:", cleanupError);
+        }
+    };
 
+    // Each test gets a fresh, isolated state.
     Yield.reset();
-    audioEngine.setMuted(true);
+    audioEngine.setMuted(true); // Muting also stops all current sounds for isolation
     const stack: any[] = [];
     const historyManager = new HistoryManager(Yield.builtInKeys);
     const initialSnapshot = historyManager.createSnapshot(stack, Yield.dictionary);
@@ -214,9 +217,16 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
     
     // For async tests
     const asyncOutput: string[] = [];
-    const handleAsyncOutput = (output: string) => {
+    const asyncErrors: string[] = [];
+    const handleAsyncOutput = (output: string, isError = false) => {
         const trimmed = output.trim();
-        if (trimmed) asyncOutput.push(trimmed);
+        if (trimmed) {
+            if (isError) {
+                asyncErrors.push(trimmed);
+            } else {
+                asyncOutput.push(trimmed);
+            }
+        }
     };
 
     try {
@@ -228,18 +238,15 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
             onAsyncOutput: handleAsyncOutput
         };
         
+        // This block runs the actual test code.
         if (testCase.replCode) {
-            const commands = Array.isArray(testCase.replCode) ? testCase.replCode : testCase.replCode.split('\n');
+            const commands = Array.isArray(testCase.replCode) ? testCase.replCode : [testCase.replCode];
             for (const command of commands) {
                 if (!command.trim() || stopSignal.stopped) continue;
-
                 commandHistory.push(command);
                 const program = Yield.parse(command);
-                
-                const isHistoryCmd = ['undo', 'redo'].includes(command.trim().toLowerCase());
-
                 await Yield.run(program, stack, runOptions);
-                
+                const isHistoryCmd = ['undo', 'redo'].includes(command.trim().toLowerCase());
                 if (!isHistoryCmd && command.trim().toLowerCase() !== 'again') {
                     const stateAfter = historyManager.createSnapshot(stack, Yield.dictionary);
                     historyManager.add(stateAfter);
@@ -256,22 +263,34 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
         if (testCase.async) {
             return new Promise((resolve) => {
                 const doAssert = async () => {
+                    let result: TestResult;
                     const dictionaryState = formatDictionaryState(Yield.dictionary);
                     try {
-                        const assertionPassed = testCase.async.assert(stack, Yield.dictionary, asyncOutput);
-                        
-                        if (assertionPassed) {
-                            resolve({ status: 'passed' });
-                        } else {
-                            resolve({
+                        if (asyncErrors.length > 0) {
+                            result = {
                                 status: 'failed',
-                                errorMessage: `Async assertion failed: ${testCase.async.assertDescription || testCase.async.assert.toString()}`,
+                                errorMessage: `Async error during test: ${asyncErrors.join('; ')}`,
                                 actualOutput: `( ${stack.map(yieldFormatter).join(' ')} )`,
-                                dictionaryState: dictionaryState,
-                            });
+                                dictionaryState,
+                            };
+                        } else {
+                            const assertionPassed = testCase.async.assert(stack, Yield.dictionary, asyncOutput);
+                            if (assertionPassed) {
+                                result = { status: 'passed' };
+                            } else {
+                                result = {
+                                    status: 'failed',
+                                    errorMessage: `Async assertion failed: ${testCase.async.assertDescription || testCase.async.assert.toString()}`,
+                                    actualOutput: `( ${stack.map(yieldFormatter).join(' ')} )`,
+                                    dictionaryState: dictionaryState,
+                                };
+                            }
                         }
                     } catch (e) {
-                         resolve({ status: 'failed', errorMessage: `Error during async test: ${e.message}`, dictionaryState: dictionaryState });
+                         result = { status: 'failed', errorMessage: `Error during async test: ${e.message}`, dictionaryState: dictionaryState };
+                    } finally {
+                        await cleanup(); // Cleanup AFTER the async test is done.
+                        resolve(result);
                     }
                 };
 
@@ -300,23 +319,17 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
         if (testCase.assertString) {
             // eslint-disable-next-line no-eval
             const assertFn = eval(testCase.assertString);
-            if (assertFn(stack, Yield.dictionary)) {
-                return { status: 'passed' };
-            }
+            if (assertFn(stack, Yield.dictionary)) return { status: 'passed' };
             return { status: 'failed', errorMessage: `Assertion failed: ${testCase.assertString}`, actualOutput: `( ${stack.map(yieldFormatter).join(' ')} )`, dictionaryState };
         }
 
         if (testCase.assert) {
-            if (testCase.assert(stack, Yield.dictionary)) {
-                return { status: 'passed' };
-            }
+            if (testCase.assert(stack, Yield.dictionary)) return { status: 'passed' };
             return { status: 'failed', errorMessage: `Assertion failed: ${testCase.assert.toString()}`, actualOutput: `( ${stack.map(yieldFormatter).join(' ')} )`, dictionaryState };
         }
 
         if (testCase.expected !== undefined) {
-            if (deepEqual(stack, testCase.expected)) {
-                return { status: 'passed' };
-            }
+            if (deepEqual(stack, testCase.expected)) return { status: 'passed' };
             return { status: 'failed', errorMessage: `Stack did not match expected output.`, actualOutput: `( ${stack.map(yieldFormatter).join(' ')} )`, dictionaryState };
         }
 
@@ -324,14 +337,15 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
     } catch (error) {
         const dictionaryState = formatDictionaryState(Yield.dictionary);
         if (testCase.expectedError) {
-            if (error.message.includes(testCase.expectedError)) {
-                return { status: 'passed' };
-            }
+            if (error.message.includes(testCase.expectedError)) return { status: 'passed' };
             return { status: 'failed', errorMessage: `Error message mismatch. Expected to find "${testCase.expectedError}"`, actualOutput: error.message, dictionaryState };
         }
         return { status: 'failed', errorMessage: `${error.message}`, actualOutput: 'N/A', dictionaryState };
     } finally {
-        audioEngine.setMuted(false);
+        // For synchronous tests, cleanup happens here. Async tests clean up inside the promise.
+        if (!testCase.async) {
+            await cleanup();
+        }
     }
 };
 
@@ -363,12 +377,14 @@ const loadTestsLogic = (): TestItem[] => {
     // Load tests from tutorial documentation
     for (const section of documentation) {
         for (const cell of section.cells) {
-             if (cell.expected !== undefined || cell.assert !== undefined || cell.expectedError !== undefined || cell.replCode !== undefined) {
+// FIX: Add support for async tests from tutorial documentation.
+             if (cell.expected !== undefined || cell.assert !== undefined || cell.expectedError !== undefined || cell.replCode !== undefined || cell.async !== undefined) {
                 const testCase: TestCase = {
                     code: Array.isArray(cell.example) ? cell.example.join('\n') : cell.example,
                     replCode: cell.replCode,
                     expected: cell.expected,
                     assert: cell.assert,
+                    async: cell.async,
                     expectedDescription: cell.expectedDescription,
                     expectedError: cell.expectedError
                 };

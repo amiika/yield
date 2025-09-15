@@ -35,6 +35,7 @@ export const ReferencePage = () => {
                         description: operator.definition.description,
                         effect: operator.definition.effect,
                         examples: operator.examples.filter(ex => !ex.expectedError),
+                        keywords: operator.keywords,
                     });
                 } else {
                     operatorMap.get(operator).names.push(opName);
@@ -59,6 +60,7 @@ export const ReferencePage = () => {
                 description: opData.description,
                 effect: opData.effect,
                 examples: opData.examples,
+                keywords: opData.keywords,
             };
         });
         
@@ -74,8 +76,9 @@ export const ReferencePage = () => {
 
             const nameMatch = op.name.toLowerCase().includes(term);
             const aliasMatch = op.aliases.some(alias => alias.toLowerCase().includes(term));
+            const keywordMatch = op.keywords && op.keywords.some(k => k.toLowerCase().includes(term));
             
-            const searchMatch = nameMatch || aliasMatch;
+            const searchMatch = nameMatch || aliasMatch || keywordMatch;
             return categoryMatch && searchMatch;
         });
     }, [allOperators, searchTerm, activeCategories]);

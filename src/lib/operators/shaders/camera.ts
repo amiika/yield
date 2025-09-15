@@ -71,13 +71,13 @@ march
 # Define the camera position using normalized mouse coordinates to orbit the object
 (
     # X position: 5.0 * sin(phi) * cos(theta)
-    5.0 mousey 3.14 * sin * mousex 6.28 * cos *
+    5.0 mousey height / 3.14 * sin * mousex width / 6.28 * cos *
 
     # Y position: 5.0 * cos(phi) - clamped to prevent flipping
-    5.0 mousey 3.14 * 0.1 3.0 clamp cos *
+    5.0 mousey height / 3.14 * 0.1 3.0 clamp cos *
 
     # Z position: 5.0 * sin(phi) * sin(theta)
-    5.0 mousey 3.14 * sin * mousex 6.28 * sin *
+    5.0 mousey height / 3.14 * sin * mousex width / 6.28 * sin *
     
     vec3
 ) glsl
@@ -99,9 +99,9 @@ render`,
 
 # The camera position is controlled by where the mouse is held down
 (
-    (mousedx 0.5 -) 10.0 * # x from -5 to 5
-    3.0                     # y is static
-    (mousedy 0.5 -) 10.0 * # z from -5 to 5
+    (mousedx width / 0.5 -) 10.0 * # x from -5 to 5
+    3.0                            # y is static
+    (mousedy height / 0.5 -) 10.0 * # z from -5 to 5
     vec3
 ) glsl
 

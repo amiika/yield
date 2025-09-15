@@ -6,6 +6,7 @@ import { reverse } from './reverse';
 import { dip2 } from './dip2';
 import { dip3 } from './dip3';
 import { enjoin } from './enjoin';
+import { yard } from './yard';
 import type { Category } from '../../types';
 
 export const utils: Category = {
@@ -20,5 +21,6 @@ export const utils: Category = {
         dip2,
         dip3,
         enjoin,
+        yard,
     }
 };
