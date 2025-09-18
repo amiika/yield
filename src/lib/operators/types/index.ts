@@ -1,6 +1,11 @@
+
 import { ord } from './ord';
 import { chr } from './chr';
 import { set } from './set';
+import { degrees } from './degrees';
+import { turns } from './turns';
+import { toPolar } from './toPolar';
+import { fromPolar } from './fromPolar';
 import type { Category } from '../../types';
 
 export const types: Category = {
@@ -10,5 +15,9 @@ export const types: Category = {
         ord,
         chr,
         set,
+        degrees,
+        turns,
+        toPolar,
+        fromPolar,
     }
 };

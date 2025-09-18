@@ -1,4 +1,3 @@
-
 // --- Shared Types for the Yield Interpreter ---
 
 // The basic types that can exist on the stack
@@ -90,6 +89,29 @@ export interface ShaderObject {
     code: string;
 }
 
+export interface PlotObject {
+    type: 'plot';
+    // Sequence can be a single list of notes or a matrix of note lists for multi-staff plots
+    sequence: any[];
+    pitchType: 'midi' | 'hz' | 'cents' | 'pitchClass' | 'noteName';
+    tonic: number; // MIDI note for midi/pc/cents, Hz for hz
+    scaleType: string; // e.g., 'major', 'nahawand'
+    timeSignature: string; // e.g., '4/4'
+    tempo: number; // e.g., 120
+}
+
+export interface EngravingObject {
+    type: 'engraving';
+    sequence: any[]; // from dur
+    pitchType: 'midi'; // For now, simplify to MIDI
+    tonic: number; // MIDI note
+    keySignature: string; // e.g., 'C', 'G', 'Fm'
+    scaleType: string; // e.g., 'major', 'harmonic minor'
+    timeSignature: string; // e.g., '4/4'
+    tempo: number; // e.g., 120
+}
+
+
 export interface ColorObject {
     type: 'color';
     expression: string;
@@ -104,6 +126,11 @@ export interface GLSLExpression {
     type: 'glsl_expression';
     code: string;
     returnType?: 'float' | 'vec2' | 'vec3' | 'vec4' | 'mat3' | 'mat4';
+}
+
+export interface GLSLFunction {
+    code: string;
+    dependencies: string[];
 }
 
 export interface MarchingObject {
@@ -144,6 +171,56 @@ export interface SceneObject {
         near?: number;
         far?: number;
     };
+}
+
+export interface TurtleSegment {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    color: [number, number, number]; // RGB [0,1]
+    penSize: number;
+}
+
+// The internal state object used by the 'turtle' operator
+export interface TurtleObject {
+    type: 'turtle';
+    x: number;
+    y: number;
+    heading: number; // degrees, 0 is up (positive Y)
+    penDown: boolean;
+    penColor: [number, number, number]; // RGB [0,1]
+    penSize: number;
+    path: TurtleSegment[];
+    angle: number;
+    stepSize: number;
+}
+
+export interface Turtle3DSegment {
+    p1: [number, number, number];
+    p2: [number, number, number];
+    color: [number, number, number];
+    penSize: number;
+}
+export interface Turtle3DObject {
+    type: 'turtle3d';
+    pos: [number, number, number];
+    dir: [number, number, number]; // Forward vector
+    up: [number, number, number];  // Up vector
+    penDown: boolean;
+    penColor: [number, number, number];
+    penSize: number;
+    path: Turtle3DSegment[];
+    angle: number;
+    stepSize: number;
+}
+
+
+// The instruction object pushed to the stack by commands like 'forward'
+export interface TurtleOp {
+    type: 'turtle-op';
+    op: string;
+    args: any[];
 }
 
 export interface LiveLoopDef {

@@ -147,7 +147,7 @@ scalemat
 
 # 4. Multiply the rotation and scaling matrices into ONE final matrix
 # The order matters: R * S applies scaling first, then rotation.
-@
+matmul
 
 # 5. Apply the combined transformation
 transform
@@ -164,7 +164,6 @@ render`,
         },
         // Matrix x Matrix
         { code: '((1 2)(3 4)) ((10 20)(30 40)) matmul', expected: [[[70, 100], [150, 220]]] },
-        { code: '((1 2)(3 4)) ((10 20)(30 40)) @', expected: [[[70, 100], [150, 220]]] },
         // Vector x Matrix
         { code: '(1 2) ((10 20)(30 40)) matmul', expected: [[70, 100]] },
         // Matrix x Vector

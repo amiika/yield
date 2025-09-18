@@ -17,14 +17,18 @@ export const Yield = (() => {
         '=>': 'quote',
         '<-': 'appendTo',
         '?': 'ifte',
-        '@': 'matmul',
         '++': 'succ',
         '--': 'pred',
         'avg': 'average',
         '..': 'range',
+        ':': 'dup',
+        '@': 'curl',
+        'π': 'pi',
+        'ℯ': 'euler',
     };
 
     let namelessLiveCounter = 1;
+    let namelessUntilCounter = 1;
 
     // --- Dictionary and Category Assembly ---
     // Dynamically build the dictionaries from the granular operator modules.
@@ -63,7 +67,33 @@ export const Yield = (() => {
 
     // --- Core Interpreter Logic ---
     const parse = (code: string): StackValue[] => {
-        const cleanCode = code.replace(/#.*/g, '');
+        const lines = code.split('\n');
+        const processedLines = lines.map(line => {
+            let processedLine = line;
+            // Handle '@' syntax anywhere on the line
+            const curlIndex = line.indexOf('@');
+            
+            if (curlIndex !== -1) {
+                const prefix = line.substring(0, curlIndex);
+                const suffix = line.substring(curlIndex + 1).trim();
+
+                const definingOperatorRegex = /\s+([^\s()]+)\s+(=|=>|<-|popto|quote|appendTo)$/;
+                const match = suffix.match(definingOperatorRegex);
+
+                if (match) {
+                    const body = suffix.substring(0, match.index).trim();
+                    const definitionPart = match[0];
+                    processedLine = `${prefix} (${body})${definitionPart}`;
+                } else {
+                    processedLine = `${prefix} (${suffix})`;
+                }
+            }
+            return processedLine;
+        });
+        const processedCode = processedLines.join('\n');
+
+        // This regex only removes comments that start a line or are preceded by whitespace.
+        const cleanCode = processedCode.replace(/(^|\s)#.*$/gm, '$1');
         // This regex correctly tokenizes by separating parentheses, braces, quoted strings,
         // symbols (like :word), and any other sequence of non-whitespace characters.
         const tokenizerRegex = /\(|\)|\{|\}|"[^"]*"|:[^\s\(\){}"]+|[^\(\){}\s]+/g;
@@ -83,7 +113,11 @@ export const Yield = (() => {
                     // even if its content matches an operator name.
                     program.push(`\0${token.slice(1, -1)}`);
                 } else if (token.startsWith(':')) {
-                    program.push(Symbol.for(token.slice(1))); // Add as a global symbol
+                    if (token.length > 1) {
+                        program.push(Symbol.for(token.slice(1))); // Add as a global symbol
+                    } else {
+                        program.push(token); // Push ':' as a string for aliasing
+                    }
                 }
                 else {
                     const num = parseFloat(token);
@@ -270,9 +304,14 @@ export const Yield = (() => {
     // This is the core evaluation generator. It is passed into operators that need it.
     const evaluate: EvaluateFn = function* (program, stack, options = {}, depth = 0) {
         program = Array.isArray(program) ? [...program] : [program];
+        const dict = options.dictionary || dictionary;
 
-        const wrappedEvaluate: EvaluateFn = (prog, st, opts) => {
-            return evaluate(prog, st, opts || options, depth + 1);
+        // This is the function that operators should call for sub-evaluation.
+        const subEvaluator: EvaluateFn = (prog, st, opts) => {
+            // It needs to merge options and call the main evaluate function.
+            // The dictionary from the new options should take precedence.
+            const newOpts = { ...options, ...(opts || {}) };
+            return evaluate(prog, st, newOpts, depth + 1);
         };
         
         while (program.length > 0) {
@@ -302,7 +341,7 @@ export const Yield = (() => {
                 if (key) dictKey = `:${key}`;
             }
 
-            const def = dictKey ? dictionary[dictKey] : undefined;
+            const def = dictKey ? dict[dictKey] : undefined;
             let execute = false;
 
             if (def) {
@@ -338,18 +377,18 @@ export const Yield = (() => {
             // 5. ACTION
             if (execute) {
                 if ('definition' in def) { // Built-in
-                    yield* def.definition.exec(stack, options, wrappedEvaluate, dictionary);
+                    yield* def.definition.exec(stack, options, subEvaluator, dict);
                 } else { // User-defined
                     const body = def.body;
                     
                     // Handle special definition types (live-loop, until) that are stored as data objects
                     if (body?.type === 'live-loop-def') {
-                        startLiveLoop(dictKey, body, dictionary, options);
+                        startLiveLoop(dictKey, body, dict, options);
                         yield;
                         continue;
                     }
                     if (body?.type === 'until-def') {
-                        startUntilLoop(dictKey, body, dictionary, options);
+                        startUntilLoop(dictKey, body, dict, options);
                         yield;
                         continue;
                     }
@@ -364,12 +403,12 @@ export const Yield = (() => {
                         if (dictKey && Array.isArray(quotation) && quotation.length === 1) {
                             const defObject = quotation[0];
                             if (defObject?.type === 'live-loop-def') {
-                                startLiveLoop(dictKey, defObject, dictionary, options);
+                                startLiveLoop(dictKey, defObject, dict, options);
                                 yield;
                                 continue;
                             }
                             if (defObject?.type === 'until-def') {
-                                startUntilLoop(dictKey, defObject, dictionary, options);
+                                startUntilLoop(dictKey, defObject, dict, options);
                                 yield;
                                 continue;
                             }
@@ -388,7 +427,7 @@ export const Yield = (() => {
                                         def._generator_state = deepClone(statePart);
                                     }
                                     const tempStack = Array.isArray(def._generator_state) ? [...def._generator_state] : [def._generator_state];
-                                    yield* wrappedEvaluate(programPart, tempStack, options);
+                                    yield* subEvaluator(programPart, tempStack, options);
                                     def._generator_state = tempStack.length === 1 ? tempStack[0] : tempStack;
                                     if (tempStack.length > 0) stack.push(tempStack[tempStack.length - 1]);
                                     yield;
@@ -423,7 +462,6 @@ export const Yield = (() => {
         }
     };
 
-    let namelessUntilCounter = 1;
     const run = (program: StackValue[], stack: StackValue[], options: YieldOptions = {}) => {
         const augmentedOptions: YieldOptions = { ...options, parse, builtInKeys, run, mainStack: stack, dictionary };
         const { stopSignal = { stopped: false }, pauseSignal = { paused: false }, onStep = () => {}, getDelay = () => augmentedOptions.delay || 0, isDebug = false } = augmentedOptions;

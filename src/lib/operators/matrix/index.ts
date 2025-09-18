@@ -1,3 +1,4 @@
+
 import { mat } from './mat';
 import { cmat } from './cmat';
 import { mat2 } from './mat2';
@@ -7,7 +8,7 @@ import { transpose } from './transpose';
 import { rotmat } from './rotmat';
 import { rotcol } from './rotcol';
 import { rotrow } from './rotrow';
-import { dot } from './dot';
+import { dotp } from './dot';
 import { cross } from './cross';
 import { matmul } from './matmul';
 import { identity } from './identity';
@@ -32,7 +33,7 @@ export const matrix: Category = {
         rotmat,
         rotcol,
         rotrow,
-        dot,
+        dotp,
         cross,
         matmul,
         identity,

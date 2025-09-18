@@ -93,7 +93,7 @@ render`,
         code: `
 # A simple cube will be our repeated unit
 4 0.2 shape
-(p 5 * t +) glsl curl material
+(p 5 * t +) glsl fluid material
 
 # Animate the limits of the repetition to make the line of cubes grow
 1.0 0 0 vec3 # spacing

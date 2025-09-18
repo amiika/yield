@@ -16,7 +16,6 @@ export const quotedPrograms: TutorialSection = {
             description: "You can define new, executable words (functions) in the dictionary using the `=>` (`quote`) operator. It assigns the quotation on top of the stack to the name that follows it.",
             // FIX: Added missing 'example' property to satisfy the TutorialCell type.
             example: "(dup *) square => \n5 square",
-            replCode: "(dup *) square => \n5 square",
             expected: [25]
         },
         {
@@ -24,7 +23,6 @@ export const quotedPrograms: TutorialSection = {
             description: "You can redefine any word, including built-in operators. Be careful, this can lead to surprising results!",
             // FIX: Added missing 'example' property to satisfy the TutorialCell type.
             example: "(1 +) two => \n1 two",
-            replCode: "(1 +) two => \n1 two",
             expected: [2]
         }
     ]

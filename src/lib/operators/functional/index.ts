@@ -1,3 +1,4 @@
+
 import { swons } from './swons';
 import { enconcat } from './enconcat';
 import { unswons } from './unswons';
@@ -8,6 +9,11 @@ import { some } from './some';
 import { all } from './all';
 import { powerlist } from './powerlist';
 import { swoncat } from './swoncat';
+import { always } from './always';
+import { compose } from './compose';
+import { curry } from './curry';
+import { uncurry } from './uncurry';
+import { rewrite } from './rewrite';
 import type { Category } from '../../types';
 
 export const functional: Category = {
@@ -24,5 +30,10 @@ export const functional: Category = {
         some,
         all,
         powerlist,
+        always,
+        compose,
+        curry,
+        uncurry,
+        rewrite,
     }
 };

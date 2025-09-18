@@ -44,7 +44,7 @@ mt                # Gate the mid tom with the sequence
 0.0625 0 delay    # Delay by a 32nd note for a syncopated feel
 0.9 mul start`,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "Stack should be empty after starting the audio."
             }

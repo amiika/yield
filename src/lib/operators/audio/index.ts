@@ -1,11 +1,9 @@
 
 
 
-
-
-
-
-import { play, start } from './play';
+// FIX: The 'start' operator is in its own file, not in 'play.ts'. Corrected the imports.
+import { play } from './play';
+import { start } from './start';
 import { sine } from './sine';
 import { saw } from './saw';
 import { pulse } from './pulse';
@@ -20,7 +18,6 @@ import { distort } from './distort';
 import { pan } from './pan';
 import { note } from './note';
 import { seq } from './seq';
-import { noteseq } from './noteseq';
 import { impulse } from './impulse';
 import { mix } from './mix';
 import { mul } from './mul';
@@ -72,7 +69,6 @@ export const audio: Category = {
         'mul': mul,
         noise,
         note,
-        noteseq,
         oneshot,
         pan,
         play,

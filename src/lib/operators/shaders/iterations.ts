@@ -34,7 +34,7 @@ mandelbulb
 (t 0.2 *) glsl 0 1 0 vec3 rotatesdf
 
 # Apply a procedural material based on position
-(p 2 *) glsl curl material
+(p 2 *) glsl fluid material
 
 # Set up scene
 march

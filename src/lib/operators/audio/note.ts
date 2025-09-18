@@ -1,16 +1,9 @@
-
-
 import type { Operator } from '../../types';
+import { midiToFreq } from '../../operators/musicology/defaults';
 
 // Helper to identify audio quotations. This is a broad check for operators that return quotations.
 const audioOps = new Set(['sine', 'saw', 'pulse', 'noise', 'lpf', 'hpf', 'ad', 'adsr', 'delay', 'distort', 'pan', 'note', 'seq', 'impulse', 'mix', 'mul', 'tri', 'bd', 'sd', 'hh', 'lt', 'mt', 'ht', 'fm_simple', 'fm_synth']);
 const isAudioQuotation = (v: any): boolean => Array.isArray(v) && v.length > 0 && typeof v[v.length - 1] === 'string' && audioOps.has(v[v.length - 1]);
-
-// Helper to calculate frequency from MIDI note number
-const midiToFreq = (note: number): number => {
-    if (typeof note !== 'number') return 0; // Should not happen if used correctly
-    return Math.pow(2, (note - 69) / 12) * 440;
-}
 
 export const note: Operator = {
     definition: {

@@ -65,7 +65,7 @@ render`,
             code: `
 # A central object to look at
 0.8 0.2 vec2 torus
-(p 5 *) glsl curl material
+(p 5 *) glsl fluid material
 march
 
 # Define the camera position using normalized mouse coordinates to orbit the object

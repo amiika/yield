@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Yield } from '../lib/yield-interpreter';
 import { yieldFormatter, deepEqual } from '../lib/utils';
@@ -208,6 +209,7 @@ const runTestLogic = async (testCase: TestCase, stopSignal: { stopped: boolean }
 
     // Each test gets a fresh, isolated state.
     Yield.reset();
+    await Yield.run(Yield.parse('600 tempo'), [], {}); // Set a fast tempo for tests
     audioEngine.setMuted(true); // Muting also stops all current sounds for isolation
     const stack: any[] = [];
     const historyManager = new HistoryManager(Yield.builtInKeys);

@@ -155,7 +155,7 @@ const App = () => {
     const isTutorial = route === '#/tutorial';
 
     return (
-        <div className={`mx-auto ${isRepl ? 'max-w-full' : 'max-w-4xl'}`}>
+        <div className={`mx-auto ${isRepl ? 'max-w-full' : 'max-w-6xl'}`}>
             <header className="mb-8 text-center">
                 <h1 className="text-5xl font-bold text-gray-900">Yield</h1>
                 <p className="mt-2 text-lg text-gray-600">Concatenative live coding language that yields</p>

@@ -1,5 +1,3 @@
-
-
 // Updated imports to be unambiguous by pointing to the 'index' file within each operator category's directory. This resolves module loading errors caused by legacy, empty files with the same name as the directories.
 import { combinators } from './combinators/index';
 import { jsMath } from './jsMath/index';
@@ -23,6 +21,8 @@ import { history } from './history/index';
 import { audio } from './audio/index';
 import { shaders } from './shaders/index';
 import { live } from './live/index';
+import { musicology } from './musicology/index';
+import { turtle } from './turtle/index';
 import type { Category } from '../types';
 
 // Merge the jsMath category into the main math category for a better user experience.
@@ -75,6 +75,8 @@ export const operatorModules: { [key: string]: Category } = {
     'repl': repl,
     'history': history,
     'audio': audio,
+    'musicology': musicology,
     'shaders': shaders,
+    'turtle': turtle,
     'live': live,
 };

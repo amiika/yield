@@ -1,4 +1,5 @@
 
+
 import type { Operator } from '../../types';
 import { deepClone } from '../../utils';
 
@@ -45,7 +46,7 @@ export const poly: Operator = {
         {
             replCode: `8 impulse (hh sd bd) poly 0.8 mul start`,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "The simple drum machine should start playing."
             }
@@ -72,7 +73,7 @@ export const poly: Operator = {
 0.8 mul start
 `,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "The polyrhythmic drum machine should start playing."
             }
@@ -120,7 +121,7 @@ export const poly: Operator = {
 0.8 mul start
 `,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "Two tom sounds should be heard, panned left and right."
             }
@@ -148,7 +149,7 @@ export const poly: Operator = {
 0.5 mul start
 `,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "A layered synth arpeggio with different effects should start playing."
             }

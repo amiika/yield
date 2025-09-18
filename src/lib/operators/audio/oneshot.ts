@@ -1,5 +1,6 @@
 
 
+
 import type { Operator } from '../../types';
 
 export const oneshot: Operator = {
@@ -12,7 +13,7 @@ export const oneshot: Operator = {
     },
     examples: [
         {
-            replCode: "oneshot 60 0.8 e-piano 2.0 play",
+            replCode: "oneshot bd 0.25 play",
             async: {
                 duration: 500,
                 assert: s => s.length === 0,

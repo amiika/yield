@@ -1,4 +1,5 @@
 
+
 import type { Operator } from '../../types';
 
 export const sleep: Operator = {
@@ -26,7 +27,7 @@ export const sleep: Operator = {
         {
             replCode: ['120 tempo', '1', '0.5 sleep', '2'],
             async: {
-                duration: 600, // 0.5 beat @ 120bpm = 250ms. Wait 600ms to be safe.
+                duration: 300, // 0.5 beat @ 120bpm = 250ms. Wait 300ms to be safe.
                 assert: (s) => s.length === 2 && s[0] === 1 && s[1] === 2,
                 assertDescription: "The stack should contain [1 2] after the sleep."
             }

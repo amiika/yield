@@ -24,7 +24,7 @@ export const near: Operator = {
             code: `
 # A highly detailed psychobox fractal
 12 psychobox
-(p 2 *) glsl curl material
+(p 2 *) glsl fluid material
 march
 
 # Set a very low near clip distance for high-detail closeups

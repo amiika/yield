@@ -44,6 +44,7 @@ export const isFlatList = (v: any): boolean => Array.isArray(v) && !isMatrix(v);
 
 // The generic formatter for converting any Yield value into its parsable code representation.
 export const yieldFormatter = (value: any): string => {
+    if (value === undefined) return '';
     if (typeof value === 'string') {
         // The parser prefixes literal strings with \0.
         // To make it valid code again, we must wrap the content in quotes.
@@ -83,6 +84,8 @@ export const yieldFormatter = (value: any): string => {
             return '<live-loop>';
         }
         if (value.type === 'shader') return '<shader>';
+        if (value.type === 'plot') return '<plot>';
+        if (value.type === 'engraving') return '<engraving>';
         if (value.type === 'scene') return '<scene>';
         if (value.type === 'light') return '<light>';
         if (value.type === 'color') return '<color>';
@@ -139,6 +142,48 @@ export const applyBinaryOp = (op: (a: number, b: number) => number | null, a: an
     }
     
     throw new Error(`Incompatible types for binary math operation: ${yieldFormatter(a)} and ${yieldFormatter(b)}`);
+};
+
+// FIX: Add vector math helpers for 3D turtle graphics
+// --- Vector Math Helpers for 3D Turtle ---
+export const cross = (a: number[], b: number[]): [number, number, number] => {
+    if (a.length !== 3 || b.length !== 3) {
+        throw new Error('Cross product is only defined for 3D vectors.');
+    }
+    return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+    ];
+};
+
+const dot = (a: number[], b: number[]): number => {
+    if (a.length !== b.length) {
+        throw new Error('Dot product requires vectors of the same length.');
+    }
+    return a.reduce((sum, val, i) => sum + val * b[i], 0);
+};
+
+export const rotateVector = (v: number[], k: number[], theta: number): [number, number, number] => {
+    if (v.length !== 3 || k.length !== 3) {
+        throw new Error('rotateVector is only defined for 3D vectors.');
+    }
+
+    const cosTheta = Math.cos(theta);
+    const sinTheta = Math.sin(theta);
+    
+    const k_len = Math.sqrt(k[0]*k[0] + k[1]*k[1] + k[2]*k[2]);
+    if (k_len < 1e-9) return [...v] as [number, number, number];
+    const k_norm = [k[0]/k_len, k[1]/k_len, k[2]/k_len];
+    
+    const k_cross_v = cross(k_norm, v);
+    const k_dot_v = dot(k_norm, v);
+    
+    const v_rot_x = v[0] * cosTheta + k_cross_v[0] * sinTheta + k_norm[0] * k_dot_v * (1 - cosTheta);
+    const v_rot_y = v[1] * cosTheta + k_cross_v[1] * sinTheta + k_norm[1] * k_dot_v * (1 - cosTheta);
+    const v_rot_z = v[2] * cosTheta + k_cross_v[2] * sinTheta + k_norm[2] * k_dot_v * (1 - cosTheta);
+    
+    return [v_rot_x, v_rot_y, v_rot_z];
 };
 
 
@@ -204,11 +249,18 @@ export const toGLSL = (val: any): string => {
             const rows = mat.length;
             if (rows === 0) return '';
             const cols = mat[0].length;
-            if (rows !== cols) return ''; // Only square matrices for now
-            const flat = mat.flat();
-            if (rows === 3) return `mat3(${flat.map(v => toGLSL(v)).join(', ')})`;
-            if (rows === 4) return `mat4(${flat.map(v => toGLSL(v)).join(', ')})`;
-            return '';
+            if (cols === 0) return '';
+
+            if (rows === cols && rows >= 2 && rows <= 4) { // Square matN
+                const transposed = mat[0].map((_, colIndex) => mat.map(row => row[colIndex]));
+                const flat = transposed.flat();
+                return `mat${rows}(${flat.map(v => toGLSL(v)).join(', ')})`;
+            } else { // Non-square or other sizes -> array of vec
+                if (cols > 4) throw new Error('Matrices with more than 4 columns are not supported for GLSL transpilation.');
+                const vecType = `vec${cols}`;
+                const vecRows = mat.map(row => `${vecType}(${row.map(toGLSL).join(', ')})`);
+                return `${vecType}[${rows}](${vecRows.join(', ')})`;
+            }
         }
         if (val.length === 2) return `vec2(${val.map(toGLSL).join(', ')})`;
         if (val.length === 3) return `vec3(${val.map(toGLSL).join(', ')})`;
@@ -314,7 +366,7 @@ const glslOpMap = {
     'round': (a) => `round(${a})`,
     'snoise': (a) => `snoise(${a})`,
     'fbm': (a) => `fbm(${a})`,
-    'curl': (a) => `curl(${a})`,
+    'fluid': (a) => `fluid(${a})`,
     'fuse': (c, b, a) => `mix(${a}, ${b}, ${c})`, // RPN: A B T -> GLSL: mix(A, B, T)
     'clamp': (c, b, a) => `clamp(${a}, ${b}, ${c})`, // RPN: X Min Max -> GLSL: clamp(X, Min, Max)
     'smoothstep': (c, b, a) => `smoothstep(${b}, ${c}, ${a})`, // RPN: X E0 E1 -> GLSL: smoothstep(E0, E1, X)
@@ -366,6 +418,22 @@ const glslOpMap = {
     'union': (b, a) => `min(${a}, ${b})`,
     'difference': (b, a) => `max(${a}, -${b})`,
     'intersection': (b, a) => `max(${a}, ${b})`,
+    'sprite': (matrixExpr: string, uvExpr: string): string => {
+        let match = matrixExpr.match(/^mat(\d+)\(.*\)/);
+        if (match) {
+            const dim = parseInt(match[1], 10);
+            if (dim >= 2 && dim <= 4) {
+                return `sampleSpriteMat${dim}(${matrixExpr}, ${uvExpr})`;
+            }
+        }
+    
+        match = matrixExpr.match(/^vec(\d+)\[(\d+)\]\(.*\)/);
+        if (match) {
+            throw new Error(`Non-square matrix sprites are not yet supported.`);
+        }
+    
+        throw new Error(`Could not determine dimensions of sprite matrix from expression: ${matrixExpr}`);
+    },
 };
 
 const glslArityMap = {
@@ -381,7 +449,7 @@ const glslArityMap = {
     'floor': 1, 'ceil': 1, 'round': 1,
     'snoise': 1,
     'fbm': 1,
-    'curl': 1,
+    'fluid': 1,
     'fuse': 3,
     'clamp': 3,
     'smoothstep': 3,
@@ -431,6 +499,7 @@ const glslArityMap = {
     'union': 2,
     'difference': 2,
     'intersection': 2,
+    'sprite': 2,
 };
 
 export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, specialVars: Set<string>, isGLSLTarget: boolean): string => {
@@ -462,6 +531,10 @@ export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, 
             continue;
         }
         if (Array.isArray(token)) {
+            if (isMatrix(token)) {
+                stack.push(toGLSL(token));
+                continue;
+            }
             // It's a nested quotation that is NOT a glsl expression.
             const result = transpileQuotation(token, opMap, arityMap, specialVars, isGLSLTarget);
             stack.push(`(${result})`);
@@ -493,29 +566,16 @@ export const transpileQuotation = (quotation: any[], opMap: any, arityMap: any, 
             }
 
             if (token === 'vec4') {
-                // Custom handling for vec4 to support GLSL constructor overloads
-                const op = opMap[token];
-                const arity = arityMap[token];
-                if (stack.length >= arity) { // Prioritize 4-float constructor
-                    const args = [];
-                    for(let i=0; i<arity; i++) args.push(stack.pop());
-                    stack.push(op(...args));
-                } else if (stack.length === 3) {
-                    const c = stack.pop();
-                    const b = stack.pop();
-                    const a = stack.pop();
-                    stack.push(`vec4(${a}, ${b}, ${c})`);
-                } else if (stack.length === 2) {
-                    const b = stack.pop();
-                    const a = stack.pop();
-                    stack.push(`vec4(${a}, ${b})`);
-                } else if (stack.length === 1) {
-                    const a = stack.pop();
-                    stack.push(`vec4(${a})`);
-                } else {
-                    throw new Error(`Stack underflow for operator in quotation: 'vec4'.`);
+                if (stack.length >= 2) {
+                    const b = stack.pop() as string; // float (alpha)
+                    const a = stack.pop() as string; // vec3 (color)
+                    const isAVec3 = a.startsWith('vec3') || a.startsWith('hsv2rgb') || a.startsWith('fluid') || a.startsWith('mix') || a.includes('rgb') || (a.startsWith('(') && a.endsWith(')'));
+                    if (isAVec3) {
+                        stack.push(`vec4(${a}, ${b})`);
+                        continue;
+                    }
+                    stack.push(a, b);
                 }
-                continue;
             }
 
             // --- Transpiler-level stack manipulation ---

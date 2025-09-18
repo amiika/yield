@@ -1,11 +1,15 @@
 
 
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Yield } from '../lib/yield-interpreter';
 import { yieldFormatter, deepEqual } from '../lib/utils';
 import { HistoryManager } from '../lib/HistoryManager';
-import type { IHistoryManager, ShaderObject } from '../lib/types';
+import type { IHistoryManager, ShaderObject, PlotObject, EngravingObject, TurtleObject, Turtle3DObject } from '../lib/types';
 import { ShaderCanvas } from './ShaderCanvas';
+import { PlotCanvas } from './PlotCanvas';
+import { EngravingCanvas } from './EngravingCanvas';
+import { generateTurtleShader, generateSceneFromTurtle3D, generateMarchingShader } from '../lib/operators/shaders/glsl-generator';
 
 // --- Type Definitions ---
 interface CommandEntry {
@@ -144,6 +148,10 @@ export const Repl = () => {
     const [isRunning, setIsRunning] = useState(false);
     const [showWelcome, setShowWelcome] = useState(true);
     const [shaderOnStack, setShaderOnStack] = useState<ShaderObject | null>(null);
+    const [plotOnStack, setPlotOnStack] = useState<PlotObject | null>(null);
+    const [engravingOnStack, setEngravingOnStack] = useState<EngravingObject | null>(null);
+    const [turtleOnStack, setTurtleOnStack] = useState<TurtleObject | null>(null);
+    const [turtle3DOnStack, setTurtle3DOnStack] = useState<Turtle3DObject | null>(null);
     const [liveOutput, setLiveOutput] = useState<string | null>(null); // For live loop stack display
     const [isGodMode, setIsGodMode] = useState(false); // Godmode state
     const [dictionaryVersion, setDictionaryVersion] = useState(0); // Dictionary update tracker
@@ -243,6 +251,10 @@ export const Repl = () => {
         setHistory([]); // Clear the screen
         setInput('');   // Clear the input
         setShaderOnStack(null);
+        setPlotOnStack(null);
+        setEngravingOnStack(null);
+        setTurtleOnStack(null);
+        setTurtle3DOnStack(null);
         setLiveOutput(null);
         setShowWelcome(true);
         setDictionaryVersion(v => v + 1);
@@ -397,10 +409,22 @@ export const Repl = () => {
             }
             
             const lastItemOnStack = sessionStack.length > 0 ? sessionStack[sessionStack.length - 1] : null;
+            setShaderOnStack(null);
+            setPlotOnStack(null);
+            setEngravingOnStack(null);
+            setTurtleOnStack(null);
+            setTurtle3DOnStack(null);
+
             if (lastItemOnStack && lastItemOnStack.type === 'shader') {
                 setShaderOnStack(lastItemOnStack);
-            } else {
-                setShaderOnStack(null);
+            } else if (lastItemOnStack && lastItemOnStack.type === 'plot') {
+                setPlotOnStack(lastItemOnStack);
+            } else if (lastItemOnStack && lastItemOnStack.type === 'engraving') {
+                setEngravingOnStack(lastItemOnStack);
+            } else if (lastItemOnStack && lastItemOnStack.type === 'turtle') {
+                setTurtleOnStack(lastItemOnStack);
+            } else if (lastItemOnStack && lastItemOnStack.type === 'turtle3d') {
+                setTurtle3DOnStack(lastItemOnStack);
             }
 
             let outputForHistory = '';
@@ -515,10 +539,21 @@ export const Repl = () => {
         if (e.key === 'ArrowRight' && input === '') { e.preventDefault(); handleRun('redo'); }
     };
     
-    const isPanelOpen = shaderOnStack || isGodMode;
+    const isPanelOpen = shaderOnStack || plotOnStack || engravingOnStack || turtleOnStack || turtle3DOnStack || isGodMode;
 
     // When in godmode, always show the stack. Otherwise, show it only when live loops are active.
     const liveStackContent = liveOutput || (isGodMode ? `( ${sessionStack.map(yieldFormatter).join(' ')} )` : null);
+
+    const turtle3DShaderCode = useMemo(() => {
+        if (!turtle3DOnStack) return null;
+        try {
+            const scene = generateSceneFromTurtle3D(turtle3DOnStack);
+            return generateMarchingShader(scene, 10);
+        } catch (e) {
+            console.error("Error generating 3D turtle shader:", e);
+            return null;
+        }
+    }, [turtle3DOnStack]);
 
     return (
         <div className="flex h-[70vh] gap-4">
@@ -595,6 +630,26 @@ export const Repl = () => {
                     {shaderOnStack && (
                         <div className="flex-1 min-h-0">
                             <ShaderCanvas shaderCode={shaderOnStack.code} className="w-full h-full rounded-lg" />
+                        </div>
+                    )}
+                    {plotOnStack && (
+                         <div className="flex-1 min-h-0">
+                            <PlotCanvas plotData={plotOnStack} className="w-full h-full" />
+                        </div>
+                    )}
+                    {engravingOnStack && (
+                        <div className="flex-1 min-h-0">
+                            <EngravingCanvas engravingData={engravingOnStack} className="w-full h-full" />
+                        </div>
+                    )}
+                    {turtleOnStack && (
+                        <div className="flex-1 min-h-0">
+                            <ShaderCanvas shaderCode={generateTurtleShader(turtleOnStack)} className="w-full h-full rounded-lg" />
+                        </div>
+                    )}
+                    {turtle3DOnStack && turtle3DShaderCode && (
+                        <div className="flex-1 min-h-0">
+                            <ShaderCanvas shaderCode={turtle3DShaderCode} className="w-full h-full rounded-lg" />
                         </div>
                     )}
                     {isGodMode && (

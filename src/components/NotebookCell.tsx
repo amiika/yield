@@ -4,7 +4,9 @@ import { Yield } from '../lib/yield-interpreter';
 import { yieldFormatter } from '../lib/utils';
 import { audioEngine } from '../lib/audio/AudioEngine';
 import { ShaderCanvas } from './ShaderCanvas';
-import type { ShaderObject, TestCase } from '../lib/types';
+import { PlotCanvas } from './PlotCanvas';
+import { EngravingCanvas } from './EngravingCanvas';
+import type { ShaderObject, PlotObject, EngravingObject, TestCase } from '../lib/types';
 
 // Icon Components
 const PlayIcon = () => (
@@ -43,6 +45,7 @@ interface NotebookCellProps {
 
 // Helper for debug formatting: no quotes on strings, no brackets on stack
 const debugFormatter = (value: any): string => {
+    if (value === undefined) return '( undefined )';
     if (typeof value === 'string') {
         // Interpreter uses \0 prefix for literal strings, strip it for display.
         if (value.startsWith('\0')) {
@@ -57,20 +60,14 @@ const debugFormatter = (value: any): string => {
     if (value === false) return 'false';
     if (typeof value === 'object' && value !== null) {
         if (value.type === 'shader') return '<shader>';
+        if (value.type === 'plot') return '<plot>';
+        if (value.type === 'engraving') return '<engraving>';
         if (value.type === 'scene') return '<scene>';
         if (value.type === 'light') return '<light>';
         if (value.type === 'color') return '<color>';
         if (value.type === 'glsl_expression') return '<glsl_expression>';
         if (value.type === 'postEffect') return `<${value.op} effect>`;
         if (['geometry', 'combinator', 'transformation', 'alteration'].includes(value.type)) return '<sdf>';
-        if (typeof value.next === 'function') return '<generator>';
-    }
-    if (typeof value === 'symbol') {
-        const key = Symbol.keyFor(value);
-        if (key !== undefined) {
-            return `:${key}`;
-        }
-        return value.toString();
     }
     return String(value);
 };
@@ -118,7 +115,7 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
     const [exampleIndex, setExampleIndex] = useState(0);
     const [code, setCode] = useState(getCodeFromExample(examples[0]));
 
-    const [result, setResult] = useState<string | ShaderObject | null>(null);
+    const [result, setResult] = useState<string | ShaderObject | PlotObject | EngravingObject | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [asyncOutput, setAsyncOutput] = useState<{ text: string, isError: boolean }[]>([]);
     const [status, setStatus] = useState('idle'); // idle, running, success, error, stopped
@@ -176,8 +173,6 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
             executionState.current.stopSignal.stopped = true;
         }
         
-        // If execution is paused, we need to resume it briefly so the run loop
-        // can check the stop signal and terminate gracefully.
         if (isPaused && executionState.current?.resumeFn) {
             if(executionState.current.pauseSignal) {
                 executionState.current.pauseSignal.paused = false;
@@ -186,8 +181,6 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
             executionState.current.resumeFn();
         }
 
-        // Replicate hush operator behavior: stop all audio, cancel all scheduled
-        // events, and clear the global :loops list to terminate live loops.
         audioEngine.stopAll();
         const loopsListKey = ':loops';
         const loopsListDef = Yield.dictionary[loopsListKey];
@@ -209,7 +202,6 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
             executionState.current.pauseSignal.paused = nextPausedState;
         }
 
-        // If resuming, call the resume function which was set by the interpreter
         if (!nextPausedState && executionState.current?.resumeFn) {
             executionState.current.resumeFn();
         }
@@ -224,7 +216,7 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
                 if (stack.length === 1) {
                     stackOutput = yieldFormatter(stack[0]);
                 } else {
-                    stackOutput = `${stack.map(yieldFormatter).join(' ')}`;
+                    stackOutput = `( ${stack.map(yieldFormatter).join(' ')} )`;
                 }
                 setResult(stackOutput);
             } else {
@@ -265,16 +257,14 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
             onToken: (token, stack, remainingProgram, depth) => {
                 if (!isDebug) return;
                 
-                const stackStr = stack.map(debugFormatter).join(' ');
+                const stackStr = `( ${stack.map(debugFormatter).join(' ')} )`;
                 const programStr = [debugFormatter(token), ...remainingProgram.map(debugFormatter)].join(' ');
                 
                 if (delay > 0) {
-                    // Step-by-step: show only the current line.
                     const indent = '  '.repeat(depth);
                     const singleLineOutput = `${indent}${stackStr} <- ${programStr}`;
                     setResult(singleLineOutput);
                 } else {
-                    // Fast debug: accumulate all lines.
                     debugLogLines.current.push({ stack: stackStr, program: programStr, depth });
                 }
             },
@@ -308,7 +298,7 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
             }
 
             if (stopSignal.stopped) {
-                const stackOutput = cellStack.map(debugFormatter).join(' ');
+                const stackOutput = `( ${cellStack.map(debugFormatter).join(' ')} )`;
                 setResult(`${stackOutput}\n(Execution stopped by user)`);
                 setStatus('stopped');
             } else {
@@ -316,21 +306,21 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
                     if (delay === 0) { // Fast Debug: Show full log at the end
                         const lines = debugLogLines.current;
                         const logOutput = lines.length > 0 ? formatDebugLog(lines) : '';
-                        const stackOutput = cellStack.map(debugFormatter).join(' ');
+                        const stackOutput = `( ${cellStack.map(debugFormatter).join(' ')} )`;
 
                         let finalOutput = logOutput;
                         if (logOutput) {
-                            finalOutput += '\n' + stackOutput;
+                            finalOutput += '\n\nFinal Stack:\n' + stackOutput;
                         } else {
                             finalOutput = stackOutput;
                         }
 
                         if (sideEffectOutput.current) {
-                            finalOutput += '\n' + sideEffectOutput.current;
+                            finalOutput += '\n\nOutput:\n' + sideEffectOutput.current;
                         }
                         setResult(finalOutput);
                     } else { // Step-by-Step Debug: Show final stack at the end
-                        const stackOutput = cellStack.map(debugFormatter).join(' ');
+                        const stackOutput = `( ${cellStack.map(debugFormatter).join(' ')} )`;
                         let finalOutput = stackOutput;
                         if (sideEffectOutput.current) {
                             finalOutput += '\n' + sideEffectOutput.current;
@@ -339,15 +329,10 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
                     }
                 } else {
                     const lastItem = cellStack.length > 0 ? cellStack[cellStack.length - 1] : null;
-                    if (lastItem && lastItem.type === 'shader') {
-                        setResult(lastItem as ShaderObject);
+                    if (lastItem && ['shader', 'plot', 'engraving'].includes(lastItem.type)) {
+                        setResult(lastItem as ShaderObject | PlotObject | EngravingObject);
                     } else {
-                        let stackOutput: string;
-                        if (cellStack.length === 1) {
-                            stackOutput = yieldFormatter(cellStack[0]);
-                        } else {
-                            stackOutput = `${cellStack.map(yieldFormatter).join(' ')}`;
-                        }
+                        const stackOutput = `( ${cellStack.map(yieldFormatter).join(' ')} )`;
                         let finalOutput = stackOutput;
                         if (sideEffectOutput.current) {
                             finalOutput += '\n' + sideEffectOutput.current;
@@ -399,7 +384,6 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
     const hasExpectation = currentExample && (
         Array.isArray(currentExample.expected) ||
         currentExample.assert ||
-        currentExample.expectedType ||
         currentExample.expectedDescription
     );
 
@@ -441,7 +425,7 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
                         </div>
                         <span className="font-mono text-sm bg-gray-100 p-1 rounded whitespace-nowrap">{cellData.effect}</span>
                     </div>
-                     <p className="mt-2 text-gray-700">{cellData.description}</p>
+                     <p className="mt-2 text-gray-700" dangerouslySetInnerHTML={{ __html: cellData.description }}></p>
                 </>
             )}
 
@@ -516,32 +500,48 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
             {(hasResult || (status === 'idle' && hasExpectation) || asyncOutput.length > 0) && (
                 <div className={`output mt-3 rounded-md overflow-hidden`}>
                     {(() => {
-                        // Case 1: We have an actual result from running the code.
                         if (hasResult) {
-                            if (result && typeof result === 'object' && result.type === 'shader') {
-                                return (
-                                    <div className="h-96">
-                                        <ShaderCanvas shaderCode={result.code} className="w-full h-full" />
-                                    </div>
-                                );
+                            if (result && typeof result === 'object') {
+                                switch (result.type) {
+                                    case 'shader':
+                                        return (
+                                            <div className="h-96">
+                                                <ShaderCanvas shaderCode={(result as ShaderObject).code} className="w-full h-full" />
+                                            </div>
+                                        );
+                                    case 'plot':
+                                        return (
+                                            <div className="h-96">
+                                                <PlotCanvas plotData={result as PlotObject} className="w-full h-full" />
+                                            </div>
+                                        );
+                                    case 'engraving':
+                                        return (
+                                            <div className="h-96">
+                                                <EngravingCanvas engravingData={result as EngravingObject} className="w-full h-full" />
+                                            </div>
+                                        );
+                                }
                             }
                             return (
                                 <div className={`p-3 fira-code text-sm ${resultStyles} overflow-x-auto`}>
-                                    <p className={`text-sm mb-1 font-semibold ${status === 'error' ? 'text-red-700' : 'text-gray-400'}`}>{error ? 'Error:' : (isDebug ? 'Debug Log:' : 'Result:')}</p>
-                                    <pre>{error ? error : (typeof result === 'object' ? null : result)}</pre>
+                                    <p className={`text-sm mb-1 font-semibold ${status === 'error' ? 'text-red-700' : 'text-gray-400'}`}>{error ? 'Error:' : (isDebug ? 'Debug Log:' : 'Final Output:')}</p>
+                                    <pre>{error ? error : (typeof result === 'object' ? '' : result)}</pre>
                                 </div>
                             );
                         }
         
-                        // Case 2: We are idle and have an expectation to show.
                         if (status === 'idle' && currentExample) {
+                             let expectedOutput = '';
                             if (Array.isArray(currentExample.expected)) {
-                                let expectedOutput: string;
-                                if (currentExample.expected.length === 1) {
-                                    expectedOutput = yieldFormatter(currentExample.expected[0]);
-                                } else {
-                                    expectedOutput = `[ ${currentExample.expected.map(yieldFormatter).join(' ')} ]`;
-                                }
+                                 expectedOutput = `( ${currentExample.expected.map(yieldFormatter).join(' ')} )`;
+                            } else if (currentExample.expectedDescription) {
+                                expectedOutput = currentExample.expectedDescription;
+                            } else if (currentExample.assert) {
+                                expectedOutput = `Custom assertion: ${currentExample.assert.toString()}`;
+                            }
+
+                            if(expectedOutput) {
                                 return (
                                     <div className={`p-3 fira-code text-sm bg-gray-100 text-gray-500 overflow-x-auto`}>
                                         <p className={`text-sm mb-1 font-semibold text-gray-400`}>Expected:</p>
@@ -549,12 +549,6 @@ export const NotebookCell: React.FC<NotebookCellProps> = ({ cellData, compact = 
                                     </div>
                                 );
                             }
-                            // If it's not a simple 'expected' array, show placeholder.
-                            return (
-                                <div className={`p-3 fira-code text-sm bg-gray-100 text-gray-500 italic overflow-x-auto`}>
-                                    <p>Press play to see the result.</p>
-                                </div>
-                            );
                         }
                         
                         return null;

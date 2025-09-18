@@ -1,7 +1,8 @@
+
 import type { Operator } from '../../types';
 import { createMarchingObject, isMarchingObject } from '../../utils';
 
-export const engrave: Operator = {
+export const carve: Operator = {
     definition: {
         exec: function*(s) {
             const properties = {
@@ -9,14 +10,14 @@ export const engrave: Operator = {
             };
             const b = s.pop();
             const a = s.pop();
-            if (!isMarchingObject(a) || !isMarchingObject(b)) throw new Error(`engrave expects two SDF objects on the stack.`);
-            s.push(createMarchingObject('engrave', 'combinator', [a, b], properties));
+            if (!isMarchingObject(a) || !isMarchingObject(b)) throw new Error(`carve expects two SDF objects on the stack.`);
+            s.push(createMarchingObject('carve', 'combinator', [a, b], properties));
         },
-        description: `Combines two SDFs with the engrave operation.`,
+        description: `Combines two SDFs with the carve operation.`,
         effect: `[sdfA sdfB size] -> [sdfC]`
     },
     examples: [{
-        code: `0.5 sphere 0.3 0.3 0.6 vec3 box 0.2 engrave march render`,
+        code: `0.5 sphere 0.3 0.3 0.6 vec3 box 0.2 carve march render`,
         assert: (s) => s.length === 1 && s[0]?.type === 'shader',
         expectedDescription: 'A shader object rendering the combination.'
     }]

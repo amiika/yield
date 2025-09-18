@@ -1,3 +1,4 @@
+
 import { greaterThanOrEqual } from './greaterThanOrEqual';
 import { greaterThan } from './greaterThan';
 import { lessThanOrEqual } from './lessThanOrEqual';
@@ -14,6 +15,8 @@ import { logicalPredicate } from './logicalPredicate';
 import { stringPredicate } from './stringPredicate';
 import { listPredicate } from './listPredicate';
 import { setPredicate } from './setPredicate';
+import { nanPredicate } from './nanPredicate';
+import { infinitePredicate } from './infinitePredicate';
 import type { Category } from '../../types';
 
 export const predicates: Category = {
@@ -36,5 +39,7 @@ export const predicates: Category = {
         'string?': stringPredicate,
         'list?': listPredicate,
         'set?': setPredicate,
+        'nan?': nanPredicate,
+        'infinite?': infinitePredicate,
     }
 };

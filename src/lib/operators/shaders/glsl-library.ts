@@ -1,12 +1,11 @@
-export interface GLSLFunction {
-    code: string;
-    dependencies: string[];
-}
+
+import type { GLSLFunction } from '../../types';
 
 export const glslLibrary: Record<string, GLSLFunction> = {
     // --- Helper functions ---
     dot2: {
-        code: `float dot2( in vec2 v ) { return dot(v,v); }`,
+        code: `float dot2( in vec2 v ) { return dot(v,v); }
+float dot2( in vec3 v ) { return dot(v,v); }`,
         dependencies: [],
     },
     ndot: {
@@ -49,6 +48,36 @@ export const glslLibrary: Record<string, GLSLFunction> = {
     vec3 p_scaled = floor(p * scale);
     float check = mod(p_scaled.x + p_scaled.y + p_scaled.z, 2.0);
     return vec3(check);
+}`,
+        dependencies: [],
+    },
+    sampleSpriteMat2: {
+        code: `float sampleSpriteMat2(mat2 sprite, vec2 uv) {
+    vec2 f_uv = vec2(uv.x, 1.0 - uv.y);
+    ivec2 s = ivec2(2,2);
+    ivec2 p = ivec2(floor(f_uv * vec2(s)));
+    if (p.x<0 || p.x>=s.x || p.y<0 || p.y>=s.y) return 0.0;
+    return sprite[p.x][p.y];
+}`,
+        dependencies: [],
+    },
+    sampleSpriteMat3: {
+        code: `float sampleSpriteMat3(mat3 sprite, vec2 uv) {
+    vec2 f_uv = vec2(uv.x, 1.0 - uv.y);
+    ivec2 s = ivec2(3,3);
+    ivec2 p = ivec2(floor(f_uv * vec2(s)));
+    if (p.x<0 || p.x>=s.x || p.y<0 || p.y>=s.y) return 0.0;
+    return sprite[p.x][p.y];
+}`,
+        dependencies: [],
+    },
+    sampleSpriteMat4: {
+        code: `float sampleSpriteMat4(mat4 sprite, vec2 uv) {
+    vec2 f_uv = vec2(uv.x, 1.0 - uv.y);
+    ivec2 s = ivec2(4,4);
+    ivec2 p = ivec2(floor(f_uv * vec2(s)));
+    if (p.x<0 || p.x>=s.x || p.y<0 || p.y>=s.y) return 0.0;
+    return sprite[p.x][p.y];
 }`,
         dependencies: [],
     },
@@ -121,8 +150,8 @@ float cnoise(vec2 p) { return snoise(vec3(p, 0.0)) * 0.5 + 0.5; }`,
 }`,
         dependencies: ['snoise'],
     },
-    curl: {
-        code: `vec3 curl(vec3 p) {
+    fluid: {
+        code: `vec3 fluid(vec3 p) {
     const float e = 0.001;
     vec3 dx = vec3(e, 0.0, 0.0);
     vec3 dy = vec3(0.0, e, 0.0);
@@ -136,19 +165,19 @@ float cnoise(vec2 p) { return snoise(vec3(p, 0.0)) * 0.5 + 0.5; }`,
     float y = (n_z1.x - n_z0.x) - (n_x1.z - n_x0.z);
     float z = (n_x1.y - n_y0.y) - (n_y1.x - n_y0.y);
     
-    vec3 curlVec = vec3(x, y, z) / (2.0 * e);
-    return curlVec * 0.5 + 0.5;
+    vec3 fluidVec = vec3(x, y, z) / (2.0 * e);
+    return fluidVec * 0.5 + 0.5;
 }
 
-vec3 curl(vec2 p) {
+vec3 fluid(vec2 p) {
     const float e = 0.001;
     float n1 = snoise(vec3(p + vec2(0.0, e), 0.0));
     float n2 = snoise(vec3(p - vec2(0.0, e), 0.0));
     float n3 = snoise(vec3(p + vec2(e, 0.0), 0.0));
     float n4 = snoise(vec3(p - vec2(e, 0.0), 0.0));
-    vec2 curl2d = vec2(n1 - n2, n4 - n3) / (2.0 * e);
-    curl2d = curl2d * 0.5 + 0.5;
-    return vec3(curl2d.x, curl2d.y, (curl2d.x + curl2d.y) * 0.5);
+    vec2 fluid2d = vec2(n1 - n2, n4 - n3) / (2.0 * e);
+    fluid2d = fluid2d * 0.5 + 0.5;
+    return vec3(fluid2d.x, fluid2d.y, (fluid2d.x + fluid2d.y) * 0.5);
 }`,
         dependencies: ['vector_snoise', 'snoise'],
     },
@@ -435,7 +464,23 @@ float fbm(in vec3 _st) { // 3D version using existing snoise
     distChebychev: { code: `float distChebychev(vec2 a, vec2 b) { return max(abs(a.x - b.x), abs(a.y - b.y)); }`, dependencies: [] },
     distMinkowski: { code: `float distMinkowski(vec2 a, vec2 b, float p) { return pow(pow(abs(a.x - b.x), p) + pow(abs(a.y - b.y), p), 1.0 / p); }`, dependencies: [] },
 
-    // --- 3D Primitives ---
+    // --- 2D & 3D Primitives ---
+    sdRoundedSegment2D: {
+        code: `float sdRoundedSegment2D( vec2 p, vec2 a, vec2 b, float r ) {
+    vec2 pa = p-a, ba = b-a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length( pa - ba*h ) - r;
+}`,
+        dependencies: [],
+    },
+    sdLineSegment: {
+        code: `float sdLineSegment(vec2 p, vec2 a, vec2 b) {
+    vec2 pa = p - a, ba = b - a;
+    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+    return length(pa - ba * h);
+}`,
+        dependencies: [],
+    },
     sdSphere: { code: `float sdSphere( vec3 p, float s ) { return length(p)-s; }`, dependencies: [] },
     sdBox: { code: `float sdBox( vec3 p, vec3 b ) { vec3 q = abs(p) - b; return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0); }`, dependencies: [] },
     sdRoundbox: { code: `float sdRoundbox( vec3 p, vec3 b, float r ) { vec3 q = abs(p) - b; return length(max(q,0.0)) - r; }`, dependencies: [] },
@@ -451,8 +496,28 @@ float fbm(in vec3 _st) { // 3D version using existing snoise
     sdOctahedron: { code: `float sdOctahedron( vec3 p, float s) { p = abs(p); return (p.x+p.y+p.z-s)*0.57735027; }`, dependencies: [] },
     sdMandelbox: { code: `float sdMandelbox(vec3 p, float scale, float iterations, float folding) { vec3 z=p; float dr=1.0; for(int n=0;n<int(iterations);n++){z=clamp(z,-folding,folding)*2.0-z;float r2=dot(z,z);if(r2<0.5){z*=1.0/r2;dr=dr/r2;}z=z*scale+p;dr=dr*abs(scale)+1.0;} return length(z)/abs(dr); }`, dependencies: [] },
     sdMandelbulb: { code: `float sdMandelbulb(vec3 p) { return mandelbulbSDF(p).x; }`, dependencies: ['mandelbulbSDF'] },
+    sdTriangle: {
+        code: `float sdTriangle( vec3 p, vec3 a, vec3 b, vec3 c ) {
+    vec3 ba = b - a; vec3 pa = p - a;
+    vec3 cb = c - b; vec3 pb = p - b;
+    vec3 ac = a - c; vec3 pc = p - c;
+    vec3 nor = cross( ba, ac );
 
-    // --- 2D Primitives ---
+    return sqrt(
+        (sign(dot(cross(ba,nor),pa)) +
+         sign(dot(cross(cb,nor),pb)) +
+         sign(dot(cross(ac,nor),pc))<2.0)
+        ?
+        min( min(
+        dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa),
+        dot2(cb*clamp(dot(cb,pb)/dot2(cb),0.0,1.0)-pb) ),
+        dot2(ac*clamp(dot(ac,pc)/dot2(ac),0.0,1.0)-pc) )
+        :
+        dot(nor,pa)*dot(nor,pa)/dot2(nor) );
+}`,
+        dependencies: ['dot2'],
+    },
+
     sdArc2d: { code: `float sdArc2d( in vec3 p_3d, in vec2 sc, in float ra, float rb ) { vec2 p = p_3d.xy; p.x = abs(p.x); vec2 p2 = (sc.y*p.x>sc.x*p.y) ? p : vec2( dot(p,sc), ndot(p,sc) ); float d2d = sign(p2.x)*length(p2-vec2(ra,0.0)) - rb; return extrude(d2d, p_3d.z, 0.1);}`, dependencies: ['extrude', 'ndot'] },
     sdBox2d: { code: `float sdBox2d(in vec3 p_3d, in vec2 b){vec2 p=p_3d.xy;vec2 d=abs(p)-b;float d2d=length(max(d,0.0))+min(max(d.x,d.y),0.0);return extrude(d2d,p_3d.z,0.1);}`, dependencies: ['extrude'] },
     sdCircle2d: { code: `float sdCircle2d(vec3 p_3d, float r){ float d2d = length(p_3d.xy)-r; return extrude(d2d, p_3d.z, 0.1); }`, dependencies: ['extrude'] },
@@ -488,7 +553,7 @@ float fbm(in vec3 _st) { // 3D version using existing snoise
     opSI: { code: `vec2 opSI(vec2 d1,vec2 d2,float k){float h=clamp(0.5-0.5*(d2.x-d1.x)/k,0.0,1.0);float d=mix(d2.x,d1.x,h)+k*h*(1.0-h);float m=mix(d2.y,d1.y,h);return vec2(d,m);}`, dependencies: [] },
     opRound: { code: `vec2 opRound(vec2 d, float r) { return vec2(d.x - r, d.y); }`, dependencies: [] },
     opPipe: { code: `vec2 opPipe(vec2 d1, vec2 d2, float r) { return vec2(length(vec2(d1.x, d2.x)) - r, opU(d1, d2).y); }`, dependencies: ['opU'] },
-    opEngrave: { code: `vec2 opEngrave(vec2 d1, vec2 d2, float r) { return vec2(max(d1.x, d2.x - r), opU(d1, d2).y); }`, dependencies: ['opU'] },
+    opCarve: { code: `vec2 opCarve(vec2 d1, vec2 d2, float r) { return vec2(max(d1.x, d2.x - r), opU(d1, d2).y); }`, dependencies: ['opU'] },
     opGroove: { code: `vec2 opGroove(vec2 d1, vec2 d2, float r) { return vec2(max(d1.x, min(d2.x, -d2.x + r)), opU(d1, d2).y); }`, dependencies: ['opU'] },
     opTongue: { code: `vec2 opTongue(vec2 d1, vec2 d2, float r) { return vec2(min(d1.x, max(d2.x, -d2.x + r)), opU(d1, d2).y); }`, dependencies: ['opU'] },
     opStairs: { code: `vec2 opStairs( vec2 d1, vec2 d2, float r, float n ) { float s=r/n; float u=d2.x-r; return opU(d1,vec2(min(d2.x,0.5*(u+d1.x+abs(mod(u-d1.x,2.0*s)-s))),d2.y));}`, dependencies: ['opU'] },

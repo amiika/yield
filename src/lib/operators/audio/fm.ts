@@ -1,5 +1,6 @@
 
 
+
 import type { Operator } from '../../types';
 
 const audioOps = new Set(['sine', 'saw', 'pulse', 'noise', 'lpf', 'hpf', 'ad', 'adsr', 'delay', 'distort', 'pan', 'note', 'seq', 'impulse', 'mix', 'mul']);
@@ -77,7 +78,7 @@ export const fm: Operator = {
         {
             replCode: '440 220 400 :sine :sine fm 0.5 mul 0.25 play',
             async: {
-                duration: 300,
+                duration: 100,
                 assert: s => s.length === 0,
                 assertDescription: "Stack should be empty after playing."
             }
@@ -98,7 +99,7 @@ export const fm: Operator = {
 # The sound has a release phase, so play it for long enough to hear it
 0.4 mul 1.0 play`,
             async: {
-                duration: 700,
+                duration: 500,
                 assert: s => s.length === 0,
                 assertDescription: "Stack should be empty after playing."
             }
@@ -126,7 +127,7 @@ fm
 0.4 mul start
 `,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "The bassline should start playing."
             }
@@ -163,7 +164,7 @@ fm
 0.5 mul start
 `,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "The ambient pad sequence should start playing."
             }

@@ -19,7 +19,7 @@ render`,
         assert: (s) => s.length === 1 && s[0]?.type === 'shader',
         expectedDescription: 'A shader object rendering the 3D geometry.'
     }, {
-        code: `heart2d 0.2 scale randomcolor material render`,
+        code: `heart2d 0.2 resize randomcolor material render`,
         assert: (s) => s.length === 1 && s[0]?.type === 'shader',
         expectedDescription: 'A shader object rendering the 2D geometry.'
     }]

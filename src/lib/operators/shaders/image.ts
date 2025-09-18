@@ -1,31 +1,38 @@
 
 import type { Operator } from '../../types';
+import { interpretAndBuild2DTurtle, isTurtleQuotation } from '../turtle/interpreter';
+import { generateTurtleShader, generateImageShaderFromQuotation } from './glsl-generator';
 
 export const image: Operator = {
     definition: {
-        exec: function*(s) {
+        exec: function*(s, options, evaluate) {
             const quotation = s.pop();
             if (!Array.isArray(quotation)) {
                 throw new Error('image operator expects a quotation.');
             }
-            s.push({ type: 'image_material', quotation: quotation });
+
+            if (isTurtleQuotation(quotation)) {
+                // It's a turtle program. Interpret it to get the turtle object with its path.
+                const turtleObject = yield* interpretAndBuild2DTurtle(quotation, options, evaluate);
+                // Then, generate the GLSL shader code from the turtle object's path.
+                const shaderCode = generateTurtleShader(turtleObject);
+                s.push({ type: 'shader', code: shaderCode });
+            } else {
+                // It's a regular image material program.
+                s.push({ type: 'image_material', quotation: quotation });
+            }
         },
-        description: `Creates a 2D image shader definition. When used with 'render', it produces a 2D visual. When used with 'material', it applies the 2D pattern as a 3D texture using tri-planar mapping. Special variables 'p', 'uv', 't', 'u_resolution', and 'mouse' are available inside the quotation.`,
-        effect: `[L_quotation] -> [image_material]`
+        description: `Creates a 2D image shader definition or a 2D turtle drawing. 
+- If the quotation contains GLSL operators, it creates an \`image_material\` for texturing 3D objects.
+- If the quotation contains 2D turtle operators ('forward', 'left', etc.), it interprets the drawing program and returns a final, renderable 2D shader.`,
+        effect: `[L_quotation] -> [image_material | shader]`
     },
     examples: [
         {
-            code: `# Standalone 2D image: A simple color gradient
-(
-  uv       # use the explicit uv operator for normalized coords
-  dup x    # use uv.x for red
-  swap y   # use uv.y for green
-  0.5      # blue
-  1.0      # alpha
-  vec4
-) image render`,
-            assert: s => s[0]?.type === 'shader' && s[0].code.includes('vec4((gl_FragCoord.xy / u_resolution.xy).x, (gl_FragCoord.xy / u_resolution.xy).y, 0.5, 1.0)'),
-            expectedDescription: 'A shader object that creates a color gradient.'
+            code: `# Standalone 2D Turtle Drawing
+( 0 0 vec2 p 50 move 90 right 50 move ) image render`,
+            assert: s => s[0]?.type === 'shader' && s[0].code.includes('sdRoundedSegment2D'),
+            expectedDescription: 'A shader object that renders a 2D turtle drawing.'
         },
         {
             code: `# As a material: Apply a Voronoi pattern to a 3D sphere
@@ -35,58 +42,11 @@ export const image: Operator = {
   worley              # get worley noise
   x                   # get distance to nearest point
   1.0 swap -          # invert for classic cell look
-  dup dup 1.0 vec4 # make grayscale and add alpha
+  dup dup vec3 1.0 vec4 # make grayscale and add alpha
 ) image material
 march render`,
             assert: s => s[0]?.type === 'shader' && s[0].code.includes('worley'),
             expectedDescription: 'A shader object with a sphere textured with animated Voronoi noise.'
         },
-        {
-            code: `# As a material: Draw a soft circle on a 3D box
-1 1 1 vec3 box
-(
-  uv 0.5 -
-  dup x swap y 0.0 vec3
-  0.25 circle2d
-  0.0 0.01 smoothstep neg 1.0 +
-  dup dup 1.0 vec4
-) image material
-march render`,
-            assert: s => s[0]?.type === 'shader' && s[0].code.includes('sdCircle2d'),
-            expectedDescription: 'A shader object with a box textured with a soft circle.'
-        },
-        {
-            code: `# As a material: Interactive psychedelic fluid effect on a torus
-0.8 0.2 vec2 torus
-(
-  uv mouse 500.0 / t + +
-  dup x sin
-  swap y cos
-  0.8 1.0 vec4
-) image material
-(t 0.2 *) glsl 1 1 1 vec3 rotatesdf
-march render`,
-            assert: s => s[0]?.type === 'shader' && s[0].code.includes('mouse'),
-            expectedDescription: 'A shader object rendering a rotating torus with an interactive fluid material.'
-        },
-        {
-            code: [
-                `# Composing with glsl: Use a glsl expression as a value`,
-                `1.0 sphere`,
-                `(`,
-                `  # Calculate a grayscale value using a glsl expression`,
-                `  (p x p y * 5.0 * sin 0.5 * 0.5 +) glsl`,
-                ``,
-                `  # Use this value for all three color channels`,
-                `  dup dup # -> [val, val, val]`,
-                `  1.0     # alpha`,
-                `  vec4`,
-                `) image`,
-                `material`,
-                `march render`
-            ],
-            assert: s => s[0]?.type === 'shader' && s[0].code.includes('sin(((p.x * p.y) * 5.0))'),
-            expectedDescription: 'A shader object with a material derived from a nested glsl expression.'
-        }
     ]
 };

@@ -44,7 +44,7 @@ export const hh: Operator = {
 hh                # Gate the hi-hat with the sequence
 0.5 mul start`,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "Stack should be empty after starting the audio."
             }

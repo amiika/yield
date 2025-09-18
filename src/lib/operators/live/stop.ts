@@ -1,5 +1,6 @@
 
 
+
 import type { Operator, StackValue } from '../../types';
 import { audioEngine } from '../../audio/AudioEngine';
 
@@ -56,7 +57,7 @@ export const stop: Operator = {
                 'myloop',      // Starts the loop
             ],
             async: {
-                duration: 300, // Wait for 1 beat to pass
+                duration: 150, // Wait for 1 beat to pass
                 assert: (s, dict, asyncOutput) => {
                     const loopsList = dict[':loops']?.body;
                     return Array.isArray(loopsList) && loopsList.includes('myloop');
@@ -72,7 +73,7 @@ export const stop: Operator = {
                 'myloop stop'  // Stop it
             ],
             async: {
-                duration: 300, // Wait for 1 beat to pass
+                duration: 150, // Wait for 1 beat to pass
                 assert: (s, dict, asyncOutput) => {
                     const loopsList = dict[':loops']?.body;
                     return Array.isArray(loopsList) && !loopsList.includes('myloop');
@@ -88,7 +89,7 @@ export const stop: Operator = {
                 ':myloop stop'  // Stop it
             ],
             async: {
-                duration: 300, // Wait for 1 beat to pass
+                duration: 150, // Wait for 1 beat to pass
                 assert: (s, dict, asyncOutput) => {
                     const loopsList = dict[':loops']?.body;
                     return Array.isArray(loopsList) && !loopsList.includes(':myloop');

@@ -1,3 +1,4 @@
+
 import { add } from './add';
 import { subtract } from './subtract';
 import { multiply } from './multiply';
@@ -19,6 +20,8 @@ import { bitwiseNot } from './bitwiseNot';
 import { leftShift } from './leftShift';
 import { rightShift } from './rightShift';
 import { average } from './average';
+import { logBase } from './logBase';
+import { hypot } from './hypot';
 import type { Category } from '../../types';
 
 export const math: Category = {
@@ -40,6 +43,8 @@ export const math: Category = {
         abs,
         sign,
         average,
+        logBase,
+        hypot,
         '&': bitwiseAnd,
         '|': bitwiseOr,
         '^': bitwiseXor,

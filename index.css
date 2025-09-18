@@ -29,7 +29,7 @@ body {
     text-shadow: 0 0 5px rgba(0,0,0,0.7);
 }
 
-.repl-input {
+.repl-textarea {
     flex-grow: 1;
     background: transparent;
     border: none;
@@ -37,14 +37,15 @@ body {
     outline: none;
     padding: 0;
     width: 100%;
+    line-height: 1.5;
 }
 
-.repl-input:focus {
+.repl-textarea:focus {
     outline: none;
     box-shadow: none;
 }
 
-.repl-input::placeholder {
+.repl-textarea::placeholder {
     color: #6b7280; /* gray-500 */
 }
 

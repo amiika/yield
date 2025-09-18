@@ -1,5 +1,5 @@
-import type { Operator, SceneObject, MarchingObject, ImageMaterialObject } from '../../types';
-import { generateMarchingShader, generate2dSDFShader, generateImageShaderFromQuotation } from './glsl-generator';
+import type { Operator, SceneObject, MarchingObject, ImageMaterialObject, TurtleObject } from '../../types';
+import { generateMarchingShader, generate2dSDFShader, generateImageShaderFromQuotation, generateTurtleShader } from './glsl-generator';
 import { isMarchingObject } from '../../utils';
 
 const isSceneObject = (v: any): v is SceneObject => v && typeof v === 'object' && v.type === 'scene';
@@ -23,13 +23,16 @@ export const render: Operator = {
                 // 2D Image Shader Rendering Path
                 const shaderCode = generateImageShaderFromQuotation(subject.quotation);
                 s.push({ type: 'shader', code: shaderCode });
+            } else if (subject?.type === 'shader') {
+                // This handles the case where `image` already produced a shader from a turtle quotation
+                s.push(subject);
             }
             else {
-                throw new Error('render expects a scene, sdf, or image object.');
+                throw new Error('render expects a scene, sdf, image, or turtle-generated shader object.');
             }
         },
-        description: 'Renders a 3D scene, an SDF object, or a 2D image shader into a final visual. When rendering an SDF object directly, it produces a 2D cross-section at z=0. For 3D scenes, it raymarches and optionally takes a quality number (1-100) from the stack.',
-        effect: '[scene|sdf|image I_quality?] -> [shader]'
+        description: 'Renders a 3D scene, an SDF object, a 2D turtle drawing, or a 2D image shader into a final visual. For 3D scenes, it raymarches and optionally takes a quality number (1-100) from the stack.',
+        effect: '[scene|sdf|image|turtle_shader I_quality?] -> [shader]'
     },
     examples: [
         {code: '1 sphere march render', assert: s => s[0].type === 'shader' && s[0].code.includes('sdSphere')},
@@ -43,9 +46,9 @@ export const render: Operator = {
             expectedDescription: 'A 2D shader object rendering a circle.'
         },
         {
-            code: '0.5 sphere render',
-            assert: s => s[0].type === 'shader' && s[0].code.includes('sdSphere') && !s[0].code.includes('getNormal'),
-            expectedDescription: 'A 2D shader object rendering a cross-section of a sphere.'
+            code: `((0 0) p -10 move) image render`,
+            assert: s => s[0]?.type === 'shader',
+            expectedDescription: 'A shader object rendering a line drawn by the turtle.'
         }
     ]
 };

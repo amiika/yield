@@ -1,4 +1,5 @@
 
+
 import { trueOp } from './true';
 import { falseOp } from './false';
 import { maxint } from './maxint';
@@ -7,6 +8,8 @@ import { clock } from './clock';
 import { rand } from './rand';
 import { clearall } from './clearall';
 import { time } from './t';
+import { pi } from './pi';
+import { euler } from './e';
 import type { Category } from '../../types';
 
 export const literals: Category = {
@@ -22,5 +25,7 @@ export const literals: Category = {
         clearall,
         time,
         t: time,
+        pi,
+        euler,
     }
 };

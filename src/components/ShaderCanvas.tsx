@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 
 interface ShaderCanvasProps {
@@ -26,16 +25,22 @@ export const ShaderCanvas: React.FC<ShaderCanvasProps> = ({ shaderCode, classNam
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
+        let resizeFrameId: number;
 
         const observer = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                const { width, height } = entry.contentRect;
-                canvas.width = width;
-                canvas.height = height;
-                if (glRef.current) {
-                    glRef.current.viewport(0, 0, width, height);
+            // Defer canvas dimension changes to the next animation frame to prevent ResizeObserver loop errors.
+            resizeFrameId = requestAnimationFrame(() => {
+                if (!canvasRef.current) return;
+                for (let entry of entries) {
+                    const { width, height } = entry.contentRect;
+                    // Check if size actually changed to avoid redundant work and potential cycles
+                    if (canvasRef.current.width !== width || canvasRef.current.height !== height) {
+                        canvasRef.current.width = width;
+                        canvasRef.current.height = height;
+                        // The existing render loop will call gl.viewport with the new dimensions.
+                    }
                 }
-            }
+            });
         });
         observer.observe(canvas);
 
@@ -147,6 +152,7 @@ export const ShaderCanvas: React.FC<ShaderCanvasProps> = ({ shaderCode, classNam
         
         return () => {
             observer.disconnect();
+            cancelAnimationFrame(resizeFrameId);
             cancelAnimationFrame(animationFrameId.current);
             if(gl && programRef.current) {
                 gl.deleteProgram(programRef.current);

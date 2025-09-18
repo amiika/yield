@@ -1,3 +1,4 @@
+
 import type { TutorialSection } from './types';
 
 export const repl: TutorialSection = {
@@ -13,7 +14,6 @@ export const repl: TutorialSection = {
         {
             name: "Undo and Redo in REPL",
             description: "The `undo` command reverts the last operation. `redo` applies it again. Left & right arrows also undo & redo. These operators work only in REPL.",
-            example: ["1 2 +", "undo"],
             replCode: ["1 2 +", "undo"],
             expected: []
         }

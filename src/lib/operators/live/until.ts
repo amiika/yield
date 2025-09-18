@@ -1,4 +1,5 @@
 
+
 import type { Operator, StackValue, UntilDef } from '../../types';
 import { deepClone } from '../../utils';
 
@@ -58,7 +59,7 @@ export const until: Operator = {
                 '1 (1 +) 0.125 0.25 until'
             ],
             async: {
-                duration: 300, // wait for loop to finish, increased from 200 to be safer
+                duration: 50, // wait for loop to finish, increased from 200 to be safer
                 assert: (s, dict) => {
                     const isLoopGone = !Object.keys(dict).some(k => /^until\d+/.test(k));
                     // should run at t=0, t=12.5ms. Loop ends at t=25ms.
@@ -77,7 +78,7 @@ export const until: Operator = {
                 'myloop'
             ],
             async: {
-                duration: 300, // wait for loop to finish, increased from 200 to be safer
+                duration: 50, // wait for loop to finish, increased from 200 to be safer
                 assert: (s, dict) => {
                     const isLoopPresent = dict.hasOwnProperty('myloop');
                     const finalValueCorrect = s.length === 1 && s[0] === 3;

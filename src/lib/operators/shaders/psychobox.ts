@@ -34,7 +34,7 @@ psychobox
 (t 0.1 *) glsl 0 1 0 vec3 rotatesdf
 
 # Apply a procedural material based on position and time
-(p 3 * t +) glsl curl material
+(p 3 * t +) glsl fluid material
 
 # Set up scene
 march

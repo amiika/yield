@@ -94,3 +94,20 @@ export const quote: Operator = {
         }
     ]
 };
+
+export const curl: Operator = {
+    definition: {
+        exec: function*(s, options, evaluate) {
+            // This is syntactic sugar handled by the parser.
+            // If it ever gets called directly, it's a no-op.
+        },
+        description: `Syntactic sugar for creating a quotation. The expression \`@ A B C\` is parsed as \`(A B C)\`. It quotes all tokens until the end of the line, or until a defining operator like '=' or '=>' is found.`,
+        effect: `[... @ A B C] -> [... [A B C]]`
+    },
+    examples: [
+        {
+            code: `@ 1 2 + foo =>\nfoo`,
+            expected: [3]
+        }
+    ]
+};

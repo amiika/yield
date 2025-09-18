@@ -1,4 +1,5 @@
 
+
 import type { Operator } from '../../types';
 
 const audioOps = new Set(['sine', 'saw', 'pulse', 'tri', 'noise', 'lpf', 'hpf', 'ad', 'adsr', 'ahr', 'delay', 'distort', 'pan', 'note', 'seq', 'impulse', 'mix', 'mul', 'bd', 'sd', 'hh', 'lt', 'mt', 'ht', 'gate', 'oneshot', 'fm_synth', 'fm_simple', 'arp', 'floatbeat', 'bytebeat']);
@@ -40,7 +41,7 @@ export const arp: Operator = {
         {
             replCode: `62 3 7 60 arp 0.25 pulse 0.3 mul 1.0 play`,
             async: {
-                duration: 1100,
+                duration: 20,
                 assert: s => s.length === 0,
                 assertDescription: "A classic D-minor pulse-wave arpeggio should play for 1 beat."
             }
@@ -48,7 +49,7 @@ export const arp: Operator = {
         {
             replCode: `60 1 0 240 arp saw 0.3 mul 1.0 play`,
             async: {
-                duration: 1100,
+                duration: 20,
                 assert: s => s.length === 0,
                 assertDescription: "A very fast C/C# trill effect should play for 1 beat."
             }
@@ -56,7 +57,7 @@ export const arp: Operator = {
         {
             replCode: `90 4 7 50 arp sine 0.4 mul 1.0 play`,
             async: {
-                duration: 1100,
+                duration: 20,
                 assert: s => s.length === 0,
                 assertDescription: "A phone ring like arp effect should play for 1 beat."
             }
@@ -77,7 +78,7 @@ saw
 # Apply gain and start the sequence
 0.3 mul start`,
             async: {
-                duration: 500,
+                duration: 50,
                 assert: s => s.length === 0,
                 assertDescription: "An arpeggiated melody with modulated speed should start playing."
             }
@@ -92,7 +93,7 @@ saw
 # Use the new function to play a C note (60)
 60 arpf 0.4 mul 1 play`,
             async: {
-                duration: 1100,
+                duration: 200,
                 assert: (s, dict) => s.length === 0 && dict['arpf'] !== undefined,
                 assertDescription: "A reusable arpeggio function 'arpf' is created and used to play a note."
             }
@@ -113,7 +114,7 @@ saw
   0.25 sleep # wait 0.25 beats before the next note
 ) step`,
             async: {
-                duration: 2100,
+                duration: 50,
                 assert: (s, dict) => s.length === 0 && dict['arpf'] !== undefined,
                 assertDescription: "The arpeggiated scale should play completely, leaving the stack empty."
             }

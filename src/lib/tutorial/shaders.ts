@@ -52,9 +52,9 @@ render
 # 1. A more detailed fractal world to make the tunnel more obvious
 12 psychobox
 # Make sure it's hollow for the fly-through by subtracting a smaller version
-dup 0.95 scale 0.05 smoothDifference
+dup 0.95 resize 0.05 smoothDifference
 # A procedural material based on position
-(p 2 *) glsl curl material
+(p 2 *) glsl fluid material
 march
 
 # 2. Define a path that weaves through the fractal's holes

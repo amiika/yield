@@ -1,9 +1,10 @@
+
 import type { Operator } from '../../types';
 import { isMatrix } from '../../utils';
 
 const isVector = (v: any): v is number[] => Array.isArray(v) && !isMatrix(v) && v.every(el => typeof el === 'number');
 
-export const dot: Operator = {
+export const dotp: Operator = {
     definition: {
         exec: function*(s) {
             const b = s.pop();
@@ -32,9 +33,9 @@ export const dot: Operator = {
         effect: '[V1 V2] -> [N]'
     },
     examples: [
-        { code: '(1 2 3) (4 5 6) dot', expected: [32] },
-        { code: '(10 20) (5 2) dot', expected: [90] },
-        { code: '(1 2) (3 4 5) dot', expectedError: 'vectors of the same length' },
-        { code: '1 (1 2) dot', expectedError: 'requires two vectors' },
+        { code: '(1 2 3) (4 5 6) dotp', expected: [32] },
+        { code: '(10 20) (5 2) dotp', expected: [90] },
+        { code: '(1 2) (3 4 5) dotp', expectedError: 'vectors of the same length' },
+        { code: '1 (1 2) dotp', expectedError: 'requires two vectors' },
     ]
 };

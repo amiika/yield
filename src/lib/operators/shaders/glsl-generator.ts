@@ -1,12 +1,8 @@
 
-
-
-
-
-
-import type { MarchingObject, SceneObject, GLSLExpression } from '../../types';
+import type { MarchingObject, SceneObject, GLSLExpression, TurtleObject, Turtle3DObject } from '../../types';
 import { isColorObject, isMatrix, toGLSL, transpileGLSL } from '../../utils';
 import { glslLibrary } from './glsl-library';
+import { createMarchingObject } from '../../utils';
 export { toGLSL };
 
 // --- Dependency Resolution ---
@@ -91,7 +87,7 @@ const buildNodeList = (graph: MarchingObject): MarchingObject[] => {
 const combinatorOpToGLSLFunc = {
     union: 'opU', difference: 'opD', intersection: 'opI', xor: 'opXor',
     smoothUnion: 'opS', smoothDifference: 'opSS', smoothIntersection: 'opSI',
-    pipe: 'opPipe', engrave: 'opEngrave', groove: 'opGroove', tongue: 'opTongue',
+    pipe: 'opPipe', carve: 'opCarve', groove: 'opGroove', tongue: 'opTongue',
     stairsUnion: 'opStairs', stairsIntersection: 'opStairs', stairsDifference: 'opStairs'
 };
 
@@ -234,6 +230,35 @@ vec3 getMaterialColor(int matId, float u_time, vec3 p) {
         
         switch (node.type) {
             case 'geometry': {
+                if (node.op === 'topology') {
+                    directDeps.add('sdTriangle');
+                    const vertices = node.props.vertices as number[][];
+                    const indices = node.props.indices as number[][];
+
+                    if (!vertices || !indices) {
+                        body = 'return vec2(1e6, 0.0);'; // return empty space if data is missing
+                        break;
+                    }
+
+                    const glslVertices = `const vec3 vertices[${vertices.length}] = vec3[](${vertices.map(v => `vec3(${v.map(toGLSL).join(', ')})`).join(', ')});`;
+                    // Convert from 1-based to 0-based indices for GLSL array access
+                    const glslIndices = `const ivec3 indices[${indices.length}] = ivec3[](${indices.map(idx => `ivec3(${idx.map(val => Math.floor(val) - 1).join(', ')})`).join(', ')});`;
+                    
+                    body = `
+                        ${glslVertices}
+                        ${glslIndices}
+                        float min_dist = 1e6;
+                        for (int j = 0; j < ${indices.length}; j++) {
+                            ivec3 tri_indices = indices[j];
+                            vec3 v0 = vertices[tri_indices.x];
+                            vec3 v1 = vertices[tri_indices.y];
+                            vec3 v2 = vertices[tri_indices.z];
+                            min_dist = min(min_dist, sdTriangle(p, v0, v1, v2));
+                        }
+                        return vec2(min_dist, ${toGLSL(i + 1)});
+                    `;
+                    break;
+                }
                 const geomOp = node.op.charAt(0).toUpperCase() + node.op.slice(1);
                 const funcName = `sd${geomOp}`;
                 
@@ -288,7 +313,7 @@ vec3 getMaterialColor(int matId, float u_time, vec3 p) {
                     case 'roundIntersection': case 'chamferIntersection': result = `opRound(opI(${child1}, ${child2}), ${combProps})`; break;
                     case 'roundDifference': case 'chamferDifference': result = `opRound(opD(${child1}, ${child2}), ${combProps})`; break;
                     case 'pipe': result = `opPipe(${child1}, ${child2}, ${combProps})`; break;
-                    case 'engrave': result = `opEngrave(${child1}, ${child2}, ${combProps})`; break;
+                    case 'carve': result = `opCarve(${child1}, ${child2}, ${combProps})`; break;
                     case 'groove': result = `opGroove(${child1}, ${child2}, ${combProps})`; break;
                     case 'tongue': result = `opTongue(${child1}, ${child2}, ${combProps})`; break;
                     case 'stairsUnion': case 'stairsIntersection': case 'stairsDifference': result = `opStairs(${child1}, ${child2}, ${combProps})`; break;
@@ -301,6 +326,7 @@ vec3 getMaterialColor(int matId, float u_time, vec3 p) {
                 if (node.op === 'transform') {
                     const matrix = node.props['matrix'];
                     if (matrix?.type === 'glsl_expression') {
+                        // FIX: Changed 'deps' to 'directDeps' to match declared variable name.
                         scanExpressionForDependencies(matrix.code, directDeps);
                     }
                     const matrixGLSL = toGLSL(matrix);
@@ -322,6 +348,7 @@ vec3 getMaterialColor(int matId, float u_time, vec3 p) {
 
                 if (node.op === 'polarRepeat') {
                     const count = toGLSL(node.props['count']);
+                    // FIX: Changed 'deps' to 'directDeps' to match declared variable name.
                     scanExpressionForDependencies(count, directDeps);
                     const childId = children[0];
                     body = `
@@ -336,8 +363,10 @@ vec3 getMaterialColor(int matId, float u_time, vec3 p) {
                 }
                 
                 const glslOpName = transformationOpToGLSLFunc[node.op];
+                // FIX: Changed 'deps' to 'directDeps' to match declared variable name.
                 if(glslOpName) directDeps.add(glslOpName);
                 
+                // FIX: Changed 'deps' to 'directDeps' to match declared variable name.
                 const transProps = processProps(node.props, transformationOpParamOrder[node.op], directDeps);
                 
                 if (node.op === 'scale') {
@@ -351,8 +380,10 @@ vec3 getMaterialColor(int matId, float u_time, vec3 p) {
             }
             case 'alteration': {
                 const altGLSLOp = `op${node.op.charAt(0).toUpperCase() + node.op.slice(1)}`;
+                // FIX: Changed 'deps' to 'directDeps' to match declared variable name.
                 if(glslLibrary[altGLSLOp]) directDeps.add(altGLSLOp);
 
+                // FIX: Changed 'deps' to 'directDeps' to match declared variable name.
                 const altProps = processProps(node.props, undefined, directDeps);
                 let currentSDF = `map_${children[0]}(p)`;
 
@@ -416,6 +447,64 @@ void main() {
 `;
 };
 
+export const generateTurtleShader = (turtle: TurtleObject): string => {
+    if (!turtle || !turtle.path || turtle.path.length === 0) {
+        return `#version 300 es
+precision highp float;
+out vec4 fragColor;
+void main() { fragColor = vec4(0.0, 0.0, 0.0, 0.0); }`;
+    }
+
+    const directDeps = new Set<string>(['sdRoundedSegment2D']);
+    const libraryCode = resolveDependencies(directDeps);
+
+    const segmentsGLSL = turtle.path.map((seg) => {
+        const p1 = `vec2(${toGLSL(seg.x1)}, ${toGLSL(seg.y1)})`;
+        const p2 = `vec2(${toGLSL(seg.x2)}, ${toGLSL(seg.y2)})`;
+        const color = `vec3(${toGLSL(seg.color[0])}, ${toGLSL(seg.color[1])}, ${toGLSL(seg.color[2])})`;
+        const penSize = toGLSL(seg.penSize * 0.5); // Pen size is radius
+
+        return `
+    {
+        float d_seg = sdRoundedSegment2D(st, ${p1}, ${p2}, ${penSize});
+        if (d_seg < d) {
+            d = d_seg;
+            finalColor = ${color};
+        }
+    }`;
+    }).join('');
+
+    const mainCode = `
+void main() {
+    vec2 st = gl_FragCoord.xy - u_resolution.xy / 2.0;
+    st.y = -st.y; // Use Y-up coordinate system for turtle
+
+    float d = 1e20;
+    vec3 finalColor = vec3(1.0); // Background color (white)
+
+    ${segmentsGLSL}
+
+    float AA = 1.5 / u_resolution.y; // Anti-aliasing width
+    float fill = 1.0 - smoothstep(-AA, AA, d);
+    
+    // Premultiplied alpha for correct blending in the canvas
+    fragColor = vec4(finalColor * fill, fill);
+}
+    `;
+
+    return `#version 300 es
+precision highp float;
+uniform vec2 u_resolution;
+uniform float u_time;
+out vec4 fragColor;
+
+${libraryCode}
+
+${mainCode}
+`;
+};
+
+
 export const generate2dSDFShader = (graph: MarchingObject): string => {
     const { materialFunction, mapFunctions, mainMapFunction, directDeps } = buildSDFShaderParts(graph);
     const glslSDFLibrary = resolveDependencies(directDeps);
@@ -423,7 +512,7 @@ export const generate2dSDFShader = (graph: MarchingObject): string => {
     const mainFunction = `
 void main() {
     vec2 st = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
-    vec3 p = vec3(st * (5.0 / 1.5), 0.0); // Scale to match the default 3D camera's perspective at z=0
+    vec3 p = vec3(st, 0.0);
 
     vec2 res = map(p);
     float dist = res.x;
@@ -432,14 +521,11 @@ void main() {
     vec3 color = getMaterialColor(int(matId), u_time, p);
     
     // Antialiased fill
-    float fill = 1.0 - smoothstep(0.0, 2.0 / u_resolution.y, dist);
-
-    // Optional outline
-    float outline = smoothstep(0.0, 4.0 / u_resolution.y, abs(dist)) - fill;
-
-    vec3 finalColor = color * fill + vec3(0.2) * outline;
-
-    fragColor = vec4(finalColor, 1.0);
+    float AA = 2.0 / u_resolution.y;
+    float fill = 1.0 - smoothstep(-AA, AA, dist);
+    
+    // Premultiplied alpha
+    fragColor = vec4(color * fill, fill);
 }
     `;
 
@@ -525,131 +611,79 @@ export const generateMarchingShader = (scene: SceneObject, quality: number): str
             ${scene.shadow ? `shadowFactor = calcSoftshadow(p + nor * 0.001, lightDir, ${toGLSL(scene.shadow.diffuseness)});` : ''}
 
             float dist = length(lightPos_${i} - p);
-            float atten = 1.0 / (1.0 + dist * dist * lightAtten_${i});
-            
-            totalColor += (dif * matColor * shadowFactor + vec3(spe * 0.5)) * lightColor_${i} * atten;
+            float atten = 1.0 / (1.0 + lightAtten_${i} * dist * dist);
+
+            col += matColor * lightColor_${i} * dif * shadowFactor * atten;
+            col += spe * lightColor_${i} * shadowFactor * atten;
         }
-    `).join('') || 'totalColor = matColor * 0.5;';
+    `).join('');
     
-    let postProcessingChain = '';
-    if (scene.post && scene.post.length > 0) {
-        postProcessingChain = `
-    vec3 finalColor = col;
-    ${scene.post.map((effect) => {
-        const props = processProps(effect.props, undefined, directDeps);
-        return `finalColor = post_${effect.op}(finalColor, st${props ? ', ' + props : ''});`;
-    }).join('\n    ')}
+    let lightingBlock = '';
+    if (scene.lights.length > 0) {
+        lightingBlock = `
+        vec3 nor = getNormal(p);
+        ${lightingCalculation}
         `;
+    } else {
+        lightingBlock = `col = matColor;`;
     }
 
-    return `#version 300 es
-precision highp float;
-
-uniform vec2 u_resolution;
-uniform float u_time;
-uniform vec2 u_mouse;
-uniform vec3 u_moused;
-
-out vec4 fragColor;
-
-vec2 map(vec3 p);
-
-${preMapLibrary}
-
-// Material Definitions
-${materialFunction}
-
-// Scene Definition
-${mapFunctions}
-${mainMapFunction}
-
-${postMapLibrary}
-
-vec3 render(vec3 ro, vec3 rd, float u_time) {
-    float t = 0.0;
-    vec3 col = ${toGLSL(scene.background) || 'vec3(0.0)'};
-    
-    for (int i = 0; i < ${Math.floor(iterations)}; i++) {
-        vec3 p = ro + rd * t;
-        vec2 d = map(p);
-        
-        if (d.x < ${toGLSL(near)}) {
-            vec3 nor = vec3(0.0);
-            ${scene.lights.length > 0 ? 'nor = getNormal(p);' : ''}
-            vec3 matColor = getMaterialColor(int(d.y), u_time, p);
-            vec3 totalColor = vec3(0.0);
-            
-            ${lightsDeclarations}
-            ${lightingCalculation}
-
-            col = totalColor;
-            break;
-        }
-        
-        if (t > ${toGLSL(far)}) {
-            break;
-        }
-        t += d.x;
+    let postProcessing = 'vec3 finalColor = col;';
+    if(scene.post && scene.post.length > 0) {
+        postProcessing = scene.post.reduce((acc, effect) => {
+            const props = effect.props ? Object.values(effect.props).map(toGLSL).join(', ') : '';
+            return `post_${effect.op}(${acc}, uv${props ? ', ' + props : ''})`;
+        }, 'col');
+        postProcessing = `vec3 finalColor = ${postProcessing};`;
     }
 
-    ${scene.fog ? `
-        float fogAmount = 1.0 - exp(-t * (${toGLSL(scene.fog.strength) || '0.1'}));
-        col = mix(col, ${toGLSL(scene.fog.color) || 'vec3(0.5)'}, fogAmount);
-    ` : ''}
+    const farStr = toGLSL(far);
+    const nearStr = toGLSL(near);
 
-    return col;
-}
-
+    const mainFunction = `
 void main() {
-    vec2 st = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
-    
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec2 p = -1.0 + 2.0 * uv;
+    p.x *= u_resolution.x / u_resolution.y;
+
     vec3 ro = ${camPos};
     vec3 ta = ${camTarget};
-    
     vec3 ww = normalize(ta - ro);
     vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
-    vec3 vv = cross(uu, ww);
-    vec3 rd = normalize(st.x * uu + st.y * vv + 1.5 * ww);
-    
-    vec3 col = render(ro, rd, u_time);
+    vec3 vv = normalize(cross(uu, ww));
+    vec3 rd = normalize(p.x * uu + p.y * vv + 1.5 * ww);
 
-    ${postProcessingChain}
-    
-    fragColor = vec4(${scene.post && scene.post.length > 0 ? 'finalColor' : 'col'}, 1.0);
-}
-`;
-}
-
-export function generatePathShader(scene: SceneObject, pathQuotation: GLSLExpression, lookAroundQuotation?: GLSLExpression): string {
-    const { materialFunction, mapFunctions, mainMapFunction, directDeps } = buildSDFShaderParts(scene.graph);
-    scanExpressionForDependencies(pathQuotation.code, directDeps);
-    directDeps.add('opSS'); // Use smooth difference
-
-    const postMapRoots = new Set<string>();
-    const postMapDeps = getTransitiveDependencies(postMapRoots);
-    const preMapDeps = new Set<string>();
-    for (const dep of directDeps) {
-        if (!postMapDeps.has(dep)) {
-            preMapDeps.add(dep);
-        }
+    float t = 0.0;
+    vec2 d = vec2(1.0, 0.0);
+    int matId = 0;
+    for (int i = 0; i < ${iterations}; i++) {
+        d = map(ro + rd * t);
+        if (d.x < ${nearStr}) break;
+        t += d.x;
+        if (t > ${farStr}) break;
     }
 
-    const preMapLibrary = resolveDependencies(preMapDeps);
-    const postMapLibrary = resolveDependencies(postMapDeps);
+    vec3 col = vec3(0.0);
+    ${scene.background ? `col = ${toGLSL(scene.background)};` : ''}
 
-    const pathFunctionBody = pathQuotation.code.replace(/u_time/g, 't');
-    const iterations = scene.renderParams?.iterations ?? 128;
-    const near = scene.renderParams?.near ?? 0.001;
-    const far = scene.renderParams?.far ?? 50.0;
+    if (t < ${farStr}) {
+        vec3 p = ro + rd * t;
+        matId = int(d.y);
+        vec3 matColor = getMaterialColor(matId, u_time, p);
+        col = vec3(0.0); // Reset for lighting
+        
+        ${lightsDeclarations}
+        
+        ${lightingBlock}
 
-    let rd_calculation = `vec3 rd = normalize(uv.x * uu + uv.y * vv + 1.5 * ww);`;
-    if (lookAroundQuotation) {
-        scanExpressionForDependencies(lookAroundQuotation.code, directDeps);
-        rd_calculation = `
-    vec2 look = ${lookAroundQuotation.code};
-    vec3 rd = normalize((uv.x + look.x * 0.5) * uu + (uv.y - look.y * 0.5) * vv + 1.5 * ww);`;
+        ${scene.fog ? `col = mix(col, ${toGLSL(scene.fog.color)}, 1.0 - exp(-${toGLSL(scene.fog.strength)}*t*t));` : ''}
     }
     
+    ${postProcessing}
+    fragColor = vec4(finalColor, 1.0);
+}
+    `;
+
     return `#version 300 es
 precision highp float;
 uniform vec2 u_resolution;
@@ -659,94 +693,174 @@ uniform vec3 u_moused;
 out vec4 fragColor;
 
 vec2 map(vec3 p);
-vec2 map_combined(vec3 p, float time);
 
 ${preMapLibrary}
-${materialFunction}
+
 ${mapFunctions}
+
 ${mainMapFunction}
+
 ${postMapLibrary}
 
-// --- Path Function (from user quotation) ---
-vec3 path(float t) {
-    return ${pathFunctionBody};
-}
+${materialFunction}
 
-// The main Signed Distance Function that combines the world and the track.
-vec2 map_combined(vec3 p, float time) {
-    vec2 world_res = map(p);
+${mainFunction}
+`;
+};
 
-    // Iteratively find a better estimate for t on the path closest to p
-    float t_est = time;
-    for(int i=0; i<4; i++) {
-        vec3 path_pos = path(t_est);
-        vec3 path_tangent = normalize(path(t_est + 0.01) - path_pos);
-        float proj = dot(p - path_pos, path_tangent);
-        t_est += proj * 0.5; // Move halfway to the projected point
+
+export function generatePathShader(scene: SceneObject, path_expr: GLSLExpression, look_around_expr?: GLSLExpression): string {
+    const { materialFunction, mapFunctions, mainMapFunction, directDeps } = buildSDFShaderParts(scene.graph);
+    
+    directDeps.add('getNormal');
+    directDeps.add('calcSoftshadow');
+    scanExpressionForDependencies(path_expr.code, directDeps);
+    if (look_around_expr) {
+        scanExpressionForDependencies(look_around_expr.code, directDeps);
     }
+    
+    const libCode = resolveDependencies(directDeps);
+    const cameraSpeed = scene.camera?.speed ?? 1.0;
+    
+    const lightsDeclarations = scene.lights.map((light, i) => `
+        vec3 lightPos_${i} = ${toGLSL(light.pos) || 'vec3(2.0, 2.0, 5.0)'};
+        vec3 lightColor_${i} = ${toGLSL(light.color) || 'vec3(1.0)'};
+        float lightAtten_${i} = ${toGLSL(light.attenuation) || '0.1'};
+    `).join('');
 
-    vec3 closest_point = path(t_est);
-
-    // SDF for a circular tunnel around the path
-    float tunnel_radius = 0.8;
-    float tunnel_dist = length(p - closest_point) - tunnel_radius;
-    vec2 tunnel_res = vec2(tunnel_dist, -1.0); // Tunnel has no material
-
-    // Subtract the tunnel from the world.
-    return opSS(tunnel_res, world_res, 0.2);
-}
-
-vec3 getNormalTour(vec3 p, float time) {
-    vec2 e = vec2(0.001, 0.0);
-    return normalize(vec3(
-        map_combined(p + e.xyy, time).x - map_combined(p - e.xyy, time).x,
-        map_combined(p + e.yxy, time).x - map_combined(p - e.yxy, time).x,
-        map_combined(p + e.yyx, time).x - map_combined(p - e.yyx, time).x
-    ));
-}
-
-vec3 trace(vec3 ro, vec3 rd, float time) {
-    float t = 0.0;
-    for (int i = 0; i < ${Math.floor(iterations)}; i++) {
-        vec3 p = ro + t * rd;
-        vec2 res = map_combined(p, time);
-        float d = res.x;
-        if (d < ${toGLSL(near)}) {
-            // Get material color from user's SDF definitions
-            vec3 matColor = getMaterialColor(int(res.y), u_time, p);
-
-            // --- Simple Headlight Lighting (Ambient + Diffuse) ---
-            vec3 nor = getNormalTour(p, time);
-            vec3 lightPos = ro + vec3(0.0, 0.2, 0.5); // Headlight attached to camera
-            vec3 lightDir = normalize(lightPos - p);
-            
+    let lightingCalculation = scene.lights.map((_, i) => `
+        {
+            vec3 lightDir = normalize(lightPos_${i} - p);
             float dif = max(dot(nor, lightDir), 0.0);
-            vec3 ambient = vec3(0.2);
-            vec3 lighting = ambient + matColor * dif;
-            
-            return lighting;
+            float spe = pow(max(dot(reflect(-rd, nor), lightDir), 0.0), 32.0);
+            float shadowFactor = calcSoftshadow(p + nor * 0.001, lightDir, 8.0);
+            float dist = length(lightPos_${i} - p);
+            float atten = 1.0 / (1.0 + lightAtten_${i} * dist * dist);
+            col += matColor * lightColor_${i} * dif * shadowFactor * atten;
+            col += spe * lightColor_${i} * shadowFactor * atten;
         }
-        if (t > ${toGLSL(far)}) break;
-        t += d * 0.5;
-    }
+    `).join('');
 
-    return vec3(0.0, 0.0, 0.05); // Background color
+    if (scene.lights.length === 0) {
+        lightingCalculation = 'col = matColor;';
+    }
+    
+    const mainFunction = `
+vec3 path(float t) {
+    return ${path_expr.code};
 }
+${look_around_expr ? `vec2 look_around(vec2 uv) { vec2 mouse_normalized = vec2(0.0); return ${look_around_expr.code}; }` : ''}
 
 void main() {
-    vec2 uv = (2.0 * gl_FragCoord.xy - u_resolution.xy) / u_resolution.y;
-    float time = u_time * 0.5;
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec2 p_ndc = -1.0 + 2.0 * uv;
+    p_ndc.x *= u_resolution.x / u_resolution.y;
+
+    float t_path = u_time * ${toGLSL(cameraSpeed)};
     
-    vec3 ro = path(time);
-    vec3 ta = path(time + 0.1);
+    vec3 ro = path(t_path);
+    vec3 target = path(t_path + 0.1);
+    
+    // Add an upward offset to camera for a "standing" view
+    ro.y += 0.2;
+    
+    // Tunneling
+    float tunnel = 1.0 - exp(-1.0 * map(ro).x);
+    ro.y += tunnel * 2.0;
 
-    vec3 ww = normalize(ta - ro);
-    vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
-    vec3 vv = cross(uu, ww);
-    ${rd_calculation}
+    vec3 fwd = normalize(target - ro);
+    vec3 right = normalize(cross(fwd, vec3(0.0, 1.0, 0.0)));
+    vec3 up = normalize(cross(right, fwd));
 
-    vec3 col = trace(ro, rd, time);
+    // Apply look-around
+    ${look_around_expr ? 'vec2 look = look_around(uv); target = ro + fwd + right * look.x - up * look.y; fwd = normalize(target - ro); right = normalize(cross(fwd, vec3(0.0, 1.0, 0.0))); up = normalize(cross(right, fwd));' : ''}
+    
+    vec3 rd = normalize(fwd + p_ndc.x * right + p_ndc.y * up);
+
+    float t = 0.0;
+    vec2 d = vec2(1.0, 0.0);
+    int matId = 0;
+    for (int i = 0; i < 80; i++) {
+        vec3 p = ro + rd * t;
+        d = map(p);
+        d.x -= 0.1 * tunnel;
+        if (d.x < 0.001) break;
+        t += d.x * 0.8;
+        if (t > 100.0) break;
+    }
+
+    vec3 col = vec3(0.0);
+    if (t < 100.0) {
+        vec3 p = ro + rd * t;
+        matId = int(d.y);
+        vec3 matColor = getMaterialColor(matId, u_time, p);
+        col = vec3(0.0);
+        
+        ${lightsDeclarations}
+        
+        vec3 nor = getNormal(p);
+        
+        ${lightingCalculation}
+
+        col = mix(col, vec3(0.0), 1.0 - exp(-0.01*t*t));
+    }
+
     fragColor = vec4(col, 1.0);
 }
 `;
+
+    return `#version 300 es
+precision highp float;
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform vec2 u_mouse;
+uniform vec3 u_moused;
+out vec4 fragColor;
+
+vec2 map(vec3 p);
+
+${libCode}
+
+${mapFunctions}
+
+${mainMapFunction}
+
+${materialFunction}
+
+${mainFunction}
+`;
+}
+
+export function generateSceneFromTurtle3D(turtle: Turtle3DObject): SceneObject {
+    if (!turtle || !turtle.path || turtle.path.length === 0) {
+        return {
+            type: 'scene',
+            graph: createMarchingObject('sphere', 'geometry', [], { radius: -1.0 }), // empty scene
+            lights: [],
+        };
+    }
+
+    let sceneGraph: MarchingObject | undefined = undefined;
+
+    for (const seg of turtle.path) {
+        const p1 = seg.p1;
+        const p2 = seg.p2;
+        const color = seg.color;
+        const penSize = seg.penSize * 0.05; // Scale pen size for 3D
+
+        const capsuleSDF = createMarchingObject('capsule', 'geometry', [], {
+            start: p1,
+            end: p2,
+            radius: penSize,
+        });
+        capsuleSDF.material = { type: 'color', expression: `vec3(${toGLSL(color[0])}, ${toGLSL(color[1])}, ${toGLSL(color[2])})`};
+
+        if (sceneGraph) {
+            sceneGraph = createMarchingObject('smoothUnion', 'combinator', [sceneGraph, capsuleSDF], { smoothness: penSize * 2.0 });
+        } else {
+            sceneGraph = capsuleSDF;
+        }
+    }
+
+    return { type: 'scene', graph: sceneGraph!, lights: [] };
 }

@@ -40,10 +40,10 @@ F`,
         },
         {
             name: "Choosing the Right Tool",
-            description: "Use `=>` to define functions when you want to encapsulate an action. Use `=` for data. The `chain` combinator gives you the flexibility to treat a composition of data words as a single, executable program, which can be very powerful for certain programming styles.",
+            description: "Use `=>` to define functions when you want to encapsulate an action. Use `=` for data. The `chain`, `rewrite`, and `eval` combinators give you the flexibility to treat compositions of data words as single, executable programs, which can be very powerful for certain programming styles.",
             example: `# '=>' is usually for verbs (actions).
 # '=' is usually for nouns (data).
-# 'chain' lets you treat a sentence of nouns as a verb.`,
+# 'chain' and 'eval' let you treat a sentence of nouns as a verb.`,
         }
     ]
 };

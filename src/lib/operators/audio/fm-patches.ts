@@ -21,6 +21,17 @@ const fmPresets: Record<string, FmPreset> = {
         ],
         algorithmId: 5,
     },
+    'e-piano': {
+        opDefs: [
+            [75, 1.00, 0.01, 0.5, 0.0, 0.2, ':sine'],
+            [65, 1.00, 0.01, 0.5, 0.0, 0.2, ':sine'],
+            [80, 1.00, 0.01, 0.8, 0.0, 0.3, ':sine'],
+            [70, 14.0, 0.01, 0.3, 0.0, 0.2, ':sine'],
+            [60, 1.00, 0.01, 0.5, 0.0, 0.2, ':sine'],
+            [78, 1.00, 0.01, 0.6, 0.0, 0.3, ':sine'],
+        ],
+        algorithmId: 5,
+    },
     'bass': {
         opDefs: [
             [80, 2.00, 0.01, 0.2, 0.0, 0.1, ':sine'],
@@ -188,37 +199,37 @@ export const synth: Operator = {
         },
         description: `A generic FM synthesizer operator. Signature: \`[gate_quotation]? note_or_quotation velocity (:patch-name | patch_data) synth -> fm_quotation\`. It loads an FM patch, either from a set of built-in presets by name, from a user-defined variable by name, or from raw patch data on the stack. If the optional gate quotation is omitted, a default one-shot trigger is used.
 
-Available presets: \`:piano\`, \`:bass\`, \`:bell\`, \`:kalimba\`, \`:tamboura\`, \`:glide\`, \`:violin\`.`,
+Available presets: \`:piano\`, \`:e-piano\`, \`:bass\`, \`:bell\`, \`:kalimba\`, \`:tamboura\`, \`:glide\`, \`:violin\`.`,
         effect: '[gate_quotation]? note_or_quotation velocity (:patch-name|patch_data) -> [fm_quotation]'
     },
     examples: [
         {
             replCode: `60 0.8 :piano synth 1.0 play`,
-            async: { duration: 1100, assert: s => s.length === 0 }
+            async: { duration: 150, assert: s => s.length === 0 }
         },
         {
             replCode: `48 0.9 :bass synth 1.0 play`,
-            async: { duration: 1100, assert: s => s.length === 0 }
+            async: { duration: 150, assert: s => s.length === 0 }
         },
         {
             replCode: `72 0.7 :bell synth 2.0 play`,
-            async: { duration: 2100, assert: s => s.length === 0 }
+            async: { duration: 250, assert: s => s.length === 0 }
         },
         {
             replCode: `72 0.8 :kalimba synth 1.0 play`,
-            async: { duration: 1100, assert: s => s.length === 0 }
+            async: { duration: 150, assert: s => s.length === 0 }
         },
         {
             replCode: `48 0.9 :tamboura synth 3.0 play`,
-            async: { duration: 3100, assert: s => s.length === 0 }
+            async: { duration: 350, assert: s => s.length === 0 }
         },
         {
             replCode: `60 0.8 :glide synth 2.0 play`,
-            async: { duration: 2100, assert: s => s.length === 0 }
+            async: { duration: 250, assert: s => s.length === 0 }
         },
         {
             replCode: `72 0.7 :violin synth 2.0 play`,
-            async: { duration: 2100, assert: s => s.length === 0 }
+            async: { duration: 250, assert: s => s.length === 0 }
         },
         {
             replCode: `
@@ -237,7 +248,7 @@ Available presets: \`:piano\`, \`:bass\`, \`:bell\`, \`:kalimba\`, \`:tamboura\`
 
 # Use the custom patch
 60 0.8 :my-simple-bass synth 1.0 play`,
-            async: { duration: 500, assert: (s, d) => d[':my-simple-bass'] !== undefined }
+            async: { duration: 50, assert: (s, d) => d[':my-simple-bass'] !== undefined }
         }
     ]
 };

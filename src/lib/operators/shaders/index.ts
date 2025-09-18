@@ -1,5 +1,4 @@
 
-
 import type { Category } from '../../types';
 
 // Scene
@@ -22,7 +21,7 @@ import { rgb } from './rgb';
 import { hsv } from './hsv';
 import { wavecolor } from './wavecolor';
 import { cnoise } from './cnoise';
-import { curl } from './curl';
+import { fluid } from './curl';
 import { worley } from './worley';
 import { voronoi } from './voronoi';
 import { randomcolor } from './randomcolor';
@@ -38,6 +37,7 @@ import { smoothstep } from './smoothstep';
 import { color } from './color';
 import { image } from './image';
 import { fuse } from './fuse';
+import { sprite } from './sprite';
 
 // Post-processing effects
 import { invert } from './invert';
@@ -52,8 +52,6 @@ import { vec3 } from './vec3';
 import { vec4 } from './vec4';
 import { width } from './width';
 import { height } from './height';
-import { uv } from './uv';
-import { position } from './p';
 
 // Geometries
 import { box } from './box';
@@ -73,6 +71,7 @@ import { torus82 } from './torus82';
 import { triprism } from './triprism';
 import { fractal } from './fractal';
 import { psychobox } from './psychobox';
+import { topology } from './topology';
 // 2D Geometries
 import { arc2d } from './arc2d';
 import { box2d } from './box2d';
@@ -113,7 +112,7 @@ import { chamferUnion } from './chamferUnion';
 import { chamferIntersection } from './chamferIntersection';
 import { chamferDifference } from './chamferDifference';
 import { pipe } from './pipe';
-import { engrave } from './engrave';
+import { carve } from './engrave';
 import { groove } from './groove';
 import { tongue } from './tongue';
 import { stairsUnion } from './stairsUnion';
@@ -123,7 +122,7 @@ import { stairsDifference } from './stairsDifference';
 // Transformations / Positioning
 import { translate } from './translate';
 import { rotatesdf } from './rotatesdf';
-import { scale } from './scale';
+import { resize } from './scale';
 import { repeat } from './repeat';
 import { mirrorRepeat } from './mirrorRepeat';
 import { limitedRepeat } from './limitedRepeat';
@@ -176,7 +175,7 @@ export const shaders: Category = {
         cloud,
         cnoise,
         color,
-        curl,
+        fluid,
         fbm,
         fuse,
         glsl,
@@ -188,6 +187,7 @@ export const shaders: Category = {
         mandelbrotset,
         randomcolor,
         rgb,
+        sprite,
         texture,
         wavecolor,
         worley,
@@ -207,9 +207,6 @@ export const shaders: Category = {
         vec4,
         width,
         height,
-        uv,
-        position,
-        p: position,
         
         // Geometries
         box,
@@ -230,6 +227,7 @@ export const shaders: Category = {
         fractal,
         psychobox,
         pathSDF,
+        topology,
         // 2D Geometries
         arc2d,
         box2d,
@@ -269,7 +267,7 @@ export const shaders: Category = {
         chamferIntersection,
         chamferDifference,
         pipe,
-        engrave,
+        carve,
         groove,
         tongue,
         stairsUnion,
@@ -280,7 +278,7 @@ export const shaders: Category = {
         // Transformations / Positioning
         translate,
         rotatesdf,
-        scale,
+        resize,
         repeat,
         mirrorRepeat,
         limitedRepeat,

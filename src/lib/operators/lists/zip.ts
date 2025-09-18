@@ -15,7 +15,7 @@ export const zip: Operator = {
             const minLength = Math.min(listA.length, listB.length);
 
             for (let i = 0; i < minLength; i++) {
-                result.push([listB[i], listA[i]]);
+                result.push([listA[i], listB[i]]);
             }
 
             s.push(result);
@@ -26,15 +26,15 @@ export const zip: Operator = {
     examples: [
         {
             code: '(1 2 3) (6 5 4) zip',
-            expected: [[[6, 1], [5, 2], [4, 3]]]
+            expected: [[[1, 6], [2, 5], [3, 4]]]
         },
         {
             code: '(1 2) (10 20 30) zip',
-            expected: [[[10, 1], [20, 2]]]
+            expected: [[[1, 10], [2, 20]]]
         },
         {
             code: '(1 2 3) (10 20) zip',
-            expected: [[[10, 1], [20, 2]]]
+            expected: [[[1, 10], [2, 20]]]
         },
         {
             code: '(1 2 3) () zip',

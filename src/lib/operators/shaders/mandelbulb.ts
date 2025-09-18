@@ -23,8 +23,8 @@ mandelbulb
 # Apply an animated rotation around the Y-axis
 (t 0.5 *) glsl 0 1 0 vec3 rotatesdf
 
-# Apply an animated curl noise material for a psychedelic effect
-(p 2 * t +) glsl curl material
+# Apply an animated fluid noise material for a psychedelic effect
+(p 2 * t +) glsl fluid material
 
 # Create the scene
 march

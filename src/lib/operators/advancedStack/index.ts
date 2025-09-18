@@ -1,4 +1,7 @@
 
+
+
+
 import { appendTo } from './appendTo';
 import { ary } from './binary';
 import { construct } from './construct';
@@ -9,7 +12,7 @@ import { popto } from './popto';
 import { unary } from './unary';
 import { unstack } from './unstack';
 import { x } from './x';
-import { quote } from './quote';
+import { quote, curl } from './quote';
 import type { Category } from '../../types';
 
 export const advancedStack: Category = {
@@ -27,5 +30,6 @@ export const advancedStack: Category = {
         unstack,
         x,
         quote,
+        curl,
     }
 };

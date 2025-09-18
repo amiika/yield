@@ -16,7 +16,6 @@ export const audio: TutorialSection = {
             name: "Playing a One-Shot Sound",
             description: "The `play` operator is for one-shot sounds. It consumes an audio quotation and a duration (in beats), then transpiles and plays the sound in the background. Here, `0.5 play` plays the sound for half a beat.",
             example: "440 sine 0.5 mul 0.5 play",
-            replCode: "440 sine 0.5 mul 0.5 play",
             assert: (s) => s.length === 0,
             expectedDescription: "Stack should be empty after playing"
         },
@@ -24,7 +23,6 @@ export const audio: TutorialSection = {
             name: "Creating a Rhythm with `start`",
             description: "To create a continuous beat, use the `start` operator. The `impulse` operator creates a repeating trigger signal quotation. We can feed this into a pre-built drum machine like `bd` (bass drum) to create a persistent beat that must be stopped manually with `hush`.",
             example: "2 impulse bd start",
-            replCode: "2 impulse bd start",
             assert: (s) => s.length === 0,
             expectedDescription: "Stack should be empty after starting the sound"
         },
@@ -32,7 +30,6 @@ export const audio: TutorialSection = {
             name: "Rhythmic Phrasing with `play`",
             description: "The `play` operator can automatically create a rhythm. If you provide a `seq` node without an explicit clock, `play` will calculate the correct tempo to fit the sequence perfectly into the given duration. The `note` operator is a pure function that converts MIDI note numbers to frequencies.",
             example: "(60 64 67 72) note seq sine 0.4 mul 1 play",
-            replCode: "(60 64 67 72) note seq sine 0.4 mul 1 play",
             assert: (s) => s.length === 0,
             expectedDescription: "Plays a 4-note arpeggio in 1 beat."
         },
@@ -61,29 +58,6 @@ mix
 
 # 5. Apply a master gain and start the final mix.
 0.4 mul start`,
-            replCode: `
-# 1. Create a master clock signal quotation
-8 impulse
-
-# 2. Use the 'poly' combinator to create and automatically mix three drum parts.
-# Each part is a quotation that takes the clock and produces a final, gain-adjusted drum sound quotation.
-(
-  ( (1 0 1 0 1 0 1 0) seq hh 0.5 mul )  # Hi-hat with gain 0.5
-  ( (0 0 1 0 0 0 1 0) seq sd 0.8 mul )  # Snare with gain 0.8
-  ( (1 0 0 0 1 0 0 0) seq bd 1.0 mul )  # Kick with gain 1.0
-) poly
-
-# The stack now contains a single mixed drum quotation.
-
-# 3. Create the bassline quotation using a fresh clock signal.
-8 impulse (40 40 43 45 43 40 40 35) note seq saw 0.2 mul
-
-# 4. Mix the combined drums quotation with the bassline quotation.
-mix
-
-# 5. Apply a master gain and start the final mix.
-0.4 mul start
-`,
             assert: (s) => s.length === 0,
             expectedDescription: "Stack should be empty after starting the song"
         },
@@ -91,27 +65,6 @@ mix
             name: "Arpeggiated Chord Progression",
             description: "Live loops are powerful for building up song structures. Here, we create two separate loops running in parallel: one for a chiptune-style arpeggiated chord progression using a pulse wave, and another for a simple sine wave bassline. Both loops use the `elapsed` time to stay in sync.",
             example: `120 tempo
-
-(
-  elapsed 2 * floor 4 %
-  ( (60 4 7) (55 4 7) (57 3 7) (53 4 7) ) swap at
-  spread
-  20 arp
-  0.25 pulse 0.3 mul
-  1.0 play
-) 1.0 live :chords =>
-
-(
-  elapsed 2 * floor 4 %
-  (48 43 45 41) swap at
-  note sine
-  (0.01 0.4 0 ahr) mul 0.4 mul
-  1.0 play
-) 1.0 live :bass =>
-
-:chords
-:bass`,
-            replCode: `120 tempo
 
 # --- Live Loop 1: Arpeggiated Chords (Pulse Wave) ---
 (

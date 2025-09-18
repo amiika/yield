@@ -1,5 +1,4 @@
 
-
 import type { Operator } from '../../types';
 
 export const popstackto: Operator = {

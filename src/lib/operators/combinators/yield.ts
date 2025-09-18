@@ -25,20 +25,7 @@ export const yieldOp: Operator = {
             
             // --- Determine State to Evolve ---
             let definition;
-            // Handle ((VALUE :NAME)) syntax for state declaration
-            if (Array.isArray(nameOrValue) && nameOrValue.length === 2 && typeof nameOrValue[1] === 'symbol') {
-                const stateValue = nameOrValue[0];
-                const key = Symbol.keyFor(nameOrValue[1]);
-                dictKey = `:${key}`;
-                nameForError = dictKey;
 
-                // Initialize the dictionary if it doesn't exist
-                if (!dictionary[dictKey]) {
-                    dictionary[dictKey] = { body: stateValue, description: "User-defined state variable.", example: "" };
-                }
-                isDictVar = true;
-                definition = dictionary[dictKey];
-            } else {
                  if (typeof nameOrValue === 'symbol') {
                     const key = Symbol.keyFor(nameOrValue);
                     if (key) {
@@ -53,7 +40,7 @@ export const yieldOp: Operator = {
                 if (definition && 'body' in definition) {
                     isDictVar = true;
                 }
-            }
+            
             
             // --- Execute Evolution ---
             if (isDictVar && dictKey) {

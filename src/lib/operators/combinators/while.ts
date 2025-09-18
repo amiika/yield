@@ -6,11 +6,16 @@ export const whileOp: Operator = {
         exec: function*(s, options, evaluate) {
             const body = s.pop();
             const test = s.pop();
-            yield* evaluate([...test], s, options);
-            while (s.pop()) {
-                yield* evaluate([...body], s, options);
+
+            const loop = function*() {
                 yield* evaluate([...test], s, options);
-            }
+                if (s.pop()) {
+                    yield* evaluate([...body], s, options);
+                    yield* loop();
+                }
+            };
+            
+            yield* loop();
         },
         description: 'Executes a body program as long as a test program returns true.',
         effect: '[ [B] [D] ] -> ...'

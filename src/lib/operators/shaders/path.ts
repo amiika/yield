@@ -1,4 +1,5 @@
 
+
 import type { Operator, SceneObject, GLSLExpression } from '../../types';
 import { generatePathShader } from './glsl-generator';
 
@@ -43,7 +44,7 @@ export const path: Operator = {
             code: `
 # 1. Define the world (a psychedelic fractal)
 2 psychobox
-(p 1 *) glsl curl material
+(p 1 *) glsl fluid material
 march
 
 # 2. Define a rollercoaster-like path

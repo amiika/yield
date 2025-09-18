@@ -1,3 +1,4 @@
+
 import type { TutorialSection } from './types';
 
 const forthFCode = `
@@ -29,7 +30,6 @@ export const forthClassics: TutorialSection = {
         {
             name: "Printing a Large Letter 'F'",
             description: "This example recreates a classic Forth program for printing a large letter 'F' using asterisks. It demonstrates how to define a series of small, reusable helper words (like STAR, MARGIN, and BAR) and then compose them into a larger program (F) to create the final output.",
-            replCode: forthFCode,
             example: forthFCode,
             assert: (s) => s.length === 0,
             expectedDescription: `The letter 'F' printed with asterisks in the result panel.`
