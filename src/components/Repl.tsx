@@ -1,8 +1,6 @@
-
-
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Yield } from '../lib/yield-interpreter';
+import { Yield as YieldFull } from '../lib/yield-interpreter';
+import { Yield as YieldMini } from '../minimal/yield-mini';
 import { yieldFormatter, deepEqual } from '../lib/utils';
 import { HistoryManager } from '../lib/HistoryManager';
 import type { IHistoryManager, ShaderObject, PlotObject, EngravingObject, TurtleObject, Turtle3DObject } from '../lib/types';
@@ -33,14 +31,14 @@ let sessionStack = [];
 
 // --- Godmode Dictionary View ---
 interface DictionaryViewProps {
-    // FIX: Correctly type the dictionary prop.
     dictionary: { [key: string]: any };
     builtInKeys: Set<string>;
     version: number; // Prop to force re-render
     onUpdate: (key: string, newValue: string) => boolean;
+    interpreterMode: 'yield' | 'mini';
 }
 
-const DictionaryView: React.FC<DictionaryViewProps> = ({ dictionary, builtInKeys, version, onUpdate }) => {
+const DictionaryView: React.FC<DictionaryViewProps> = ({ dictionary, builtInKeys, version, onUpdate, interpreterMode }) => {
     const userDictionary = useMemo(() => Object.entries(dictionary)
         .filter(([key]) => !builtInKeys.has(key) && 'body' in dictionary[key]), 
         [dictionary, builtInKeys, version]
@@ -54,7 +52,7 @@ const DictionaryView: React.FC<DictionaryViewProps> = ({ dictionary, builtInKeys
     }, [version]);
 
     const formatBodyForEditing = (body: any): string => {
-        if (body?.type === 'until-process') {
+        if (interpreterMode === 'yield' && body?.type === 'until-process') {
             const { quotation, intervalBeats, endBeats } = body;
             const formattedQuotation = yieldFormatter(quotation);
             return `${formattedQuotation} ${intervalBeats} ${endBeats} until`;
@@ -71,9 +69,7 @@ const DictionaryView: React.FC<DictionaryViewProps> = ({ dictionary, builtInKeys
 
     const handleBlur = (key: string, e: React.FocusEvent<HTMLSpanElement>) => {
         const newContent = e.currentTarget.innerText;
-        
         const originalDef = dictionary[key];
-        // FIX: Added more robust type checking for originalDef and its body.
         if (!originalDef || typeof originalDef !== 'object' || !('body' in originalDef) || originalDef.body?.type === 'until-process') return;
         const originalContent = formatBodyForEditing(originalDef.body);
 
@@ -110,15 +106,13 @@ const DictionaryView: React.FC<DictionaryViewProps> = ({ dictionary, builtInKeys
                 ) : (
                     <div>
                         {userDictionary.map(([key, valueDef]) => (
-                            // FIX: Add a type guard to ensure valueDef has a 'body' property before accessing it.
-                            'body' in valueDef &&
                             <div key={`${key}-${version}`} className="flex items-baseline mb-1">
                                 <span className={`font-semibold mr-2 ${errorKey === key ? 'text-red-500' : 'text-cyan-400'}`}>
                                     {key}
                                 </span>
                                 <span className="text-gray-500 mr-2">=</span>
                                 <span
-                                    className="text-gray-300 whitespace-pre-wrap flex-grow outline-none focus:bg-gray-700/50 rounded px-1"
+                                    className={`text-gray-300 whitespace-pre-wrap flex-grow outline-none focus:bg-gray-700/50 rounded px-1 ${interpreterMode === 'yield' && valueDef.body?.type === 'until-process' ? 'cursor-not-allowed' : ''}`}
                                     contentEditable={typeof valueDef.body === 'object' && valueDef.body?.type !== 'until-process'}
                                     suppressContentEditableWarning={true}
                                     onBlur={(e) => handleBlur(key, e)}
@@ -140,7 +134,6 @@ const DictionaryView: React.FC<DictionaryViewProps> = ({ dictionary, builtInKeys
         </div>
     );
 };
-
 
 export const Repl = () => {
     const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -167,22 +160,31 @@ export const Repl = () => {
     const historyIdCounter = useRef(0);
     const didEmitInTick = useRef(false);
     const ranFromSessionStorage = useRef(false);
+    
+    // --- Interpreter Mode ---
+    const [interpreterMode, setInterpreterMode] = useState<'yield' | 'mini'>('yield');
+    const currentInterpreter = useMemo(() => (interpreterMode === 'mini' ? YieldMini : YieldFull), [interpreterMode]);
 
     // --- Effects ---
 
     useEffect(() => {
-        // This effect runs once to initialize the REPL session.
-        Yield.reset();
+        // Initialize both interpreters.
+        YieldFull.reset();
+        YieldMini.reset();
         sessionStack = [];
         
         // Initialize the state history manager
-        historyManagerRef.current = new HistoryManager(Yield.builtInKeys);
-        const initialSnapshot = historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary);
-        historyManagerRef.current.add(initialSnapshot);
+        if (interpreterMode === 'yield') {
+            historyManagerRef.current = new HistoryManager(YieldFull.builtInKeys);
+            const initialSnapshot = historyManagerRef.current.createSnapshot(sessionStack, YieldFull.dictionary);
+            historyManagerRef.current.add(initialSnapshot);
+        } else {
+             historyManagerRef.current = new HistoryManager(YieldMini.builtInKeys);
+        }
 
         setHistory([]);
         inputRef.current?.focus();
-    }, []);
+    }, [interpreterMode]);
 
     useEffect(() => {
         endOfHistoryRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -238,14 +240,16 @@ export const Repl = () => {
     }, []);
 
     const handleResetAndClear = () => {
-        Yield.reset(); // Clear custom operators
+        currentInterpreter.reset(); // Clear custom operators
         sessionStack = []; // Clear the stack
         
         // Reset state history as well
-        if (historyManagerRef.current) {
+        historyManagerRef.current = new HistoryManager(currentInterpreter.builtInKeys);
+        if (interpreterMode === 'yield') {
+             const initialSnapshot = historyManagerRef.current.createSnapshot(sessionStack, currentInterpreter.dictionary);
+             historyManagerRef.current.add(initialSnapshot);
+        } else {
             historyManagerRef.current.clear();
-            const initialSnapshot = historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary);
-            historyManagerRef.current.add(initialSnapshot);
         }
 
         setHistory([]); // Clear the screen
@@ -258,17 +262,17 @@ export const Repl = () => {
         setLiveOutput(null);
         setShowWelcome(true);
         setDictionaryVersion(v => v + 1);
-    };
+    }; // Note: This doesn't reset the interpreter mode.
 
     const handleDictionaryUpdate = useCallback((key: string, newValue: string): boolean => {
         try {
-            if (key === ':loops') {
+            if (interpreterMode === 'yield' && key === ':loops') {
                 throw new Error("Cannot directly modify the reserved ':loops' variable.");
             }
             // The user is editing the body of the definition. The provided string is the new body.
             // We parse it directly to get the list of tokens.
-            const newBody = Yield.parse(newValue);
-            const definition = Yield.dictionary[key];
+            const newBody = currentInterpreter.parse(newValue);
+            const definition = currentInterpreter.dictionary[key];
             if (definition && 'body' in definition) {
                 if (definition.body?.type === 'until-process') {
                     throw new Error("Cannot directly modify a running 'until' process.");
@@ -281,8 +285,8 @@ export const Repl = () => {
             setDictionaryVersion(v => v + 1);
 
             // Add change to history
-            if (historyManagerRef.current) {
-                const snapshot = historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary);
+            if (historyManagerRef.current && interpreterMode === 'yield') {
+                const snapshot = historyManagerRef.current.createSnapshot(sessionStack, currentInterpreter.dictionary);
                 historyManagerRef.current.add(snapshot);
             }
             return true; // success
@@ -291,7 +295,7 @@ export const Repl = () => {
             handleAsyncOutput(`Error updating '${key}': ${error.message}`, true);
             return false; // failure
         }
-    }, [handleAsyncOutput]);
+    }, [handleAsyncOutput, currentInterpreter, interpreterMode]);
 
     const runCommand = useCallback(async (command: string) => {
         if (!command.trim()) {
@@ -302,6 +306,53 @@ export const Repl = () => {
         }
         
         const processedCmd = command.trim().toLowerCase();
+        
+        const resetForSwitch = () => {
+            sessionStack = [];
+            setHistory([]);
+            setInput('');
+            setShaderOnStack(null);
+            setPlotOnStack(null);
+            setEngravingOnStack(null);
+            setTurtleOnStack(null);
+            setTurtle3DOnStack(null);
+            setLiveOutput(null);
+            setShowWelcome(false);
+            setDictionaryVersion(v => v + 1);
+        };
+
+        if (processedCmd === 'mini') {
+            if (interpreterMode === 'mini') {
+                 const newHistoryEntry: HistoryEntry = { type: 'command', command, output: 'Already in minimal mode.', isError: false, id: historyIdCounter.current++ };
+                 setHistory(prev => [...prev, newHistoryEntry]);
+                 return;
+            }
+            setInterpreterMode('mini');
+            resetForSwitch();
+            const aliasValues = new Set(Object.values(YieldMini.aliases));
+            const nonAliased = Object.keys(YieldMini.dictionary).filter(k => !aliasValues.has(k));
+            const aliased = Object.keys(YieldMini.aliases);
+            const miniCommands = [...nonAliased, ...aliased].sort().join(', ');
+
+            const message = `Switched to minimal interpreter. Type 'yield' or 'full' to switch back.\nAvailable commands: ${miniCommands}`;
+            const newHistoryEntry: HistoryEntry = { type: 'command', command, output: message, isError: false, id: historyIdCounter.current++ };
+            setHistory([newHistoryEntry]);
+            return;
+        }
+
+        if (processedCmd === 'yield' || processedCmd === 'full') {
+             if (interpreterMode === 'yield') {
+                 const newHistoryEntry: HistoryEntry = { type: 'command', command, output: 'Already in full Yield mode.', isError: false, id: historyIdCounter.current++ };
+                 setHistory(prev => [...prev, newHistoryEntry]);
+                 return;
+            }
+            setInterpreterMode('yield');
+            resetForSwitch();
+            const message = `Switched to full Yield interpreter.`;
+            const newHistoryEntry: HistoryEntry = { type: 'command', command, output: message, isError: false, id: historyIdCounter.current++ };
+            setHistory([newHistoryEntry]);
+            return;
+        }
 
         // `cls` is a special UI-only command that doesn't create a history entry.
         if (processedCmd === 'cls') {
@@ -336,20 +387,20 @@ export const Repl = () => {
         };
 
         try {
-            if (processedCmd === 'help' || processedCmd.endsWith(' help')) {
+            if ((processedCmd === 'help' || processedCmd.endsWith(' help')) && interpreterMode === 'yield') {
                  // Handle help commands synchronously as they are UI-specific
                 let output = '';
                 let isError = false;
                 if (processedCmd === 'help') {
-                     const categoryOutputs = Object.keys(Yield.dictionaryCategories).map(shortKey => {
-                        const category = Yield.dictionaryCategories[shortKey];
+                     const categoryOutputs = Object.keys(YieldFull.dictionaryCategories).map(shortKey => {
+                        const category = YieldFull.dictionaryCategories[shortKey];
                         return `${shortKey}: ${category.name}`;
                     });
                     output = categoryOutputs.join('\n') + "\n\nUse `<category> help` to see commands in a category.\nTry `godmode` to see the live dictionary.";
                 } else {
                     const topic = processedCmd.slice(0, -5).trim();
-                    const commandDef = Yield.dictionary[topic];
-                    const categoryDef = Yield.dictionaryCategories[topic];
+                    const commandDef = YieldFull.dictionary[topic];
+                    const categoryDef = YieldFull.dictionaryCategories[topic];
                     if (commandDef && 'definition' in commandDef) {
                         const exampleCode = commandDef.examples?.[0]?.code;
                         const exampleStr = exampleCode ? (Array.isArray(exampleCode) ? exampleCode.join('\n') : exampleCode) : null;
@@ -367,26 +418,33 @@ export const Repl = () => {
             }
 
             const isHistoryCmd = ['undo', 'redo'].includes(processedCmd);
-            const stateBefore = isHistoryCmd ? historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary) : null;
+            // History commands only work in full yield mode
+            const stateBefore = isHistoryCmd && interpreterMode === 'yield' 
+                ? historyManagerRef.current.createSnapshot(sessionStack, currentInterpreter.dictionary) : null;
 
-            const program = Yield.parse(command);
-            // FIX: Type-check for 'body' property on dictionary entry before accessing it.
-            const loopsDefBefore = Yield.dictionary[':loops'];
+            const program = currentInterpreter.parse(command);
+            const loopsDefBefore = currentInterpreter.dictionary[':loops'];
             const loopsBefore = (loopsDefBefore && 'body' in loopsDefBefore && Array.isArray(loopsDefBefore.body)) ? loopsDefBefore.body.length : 0;
-            await Yield.run(program, sessionStack, { 
-                onOutput: onSyncOutput,
-                onAsyncOutput: handleAsyncOutput, // Pass the async handler
-                historyManager: historyManagerRef.current,
-                commandHistory: nextCommandHistory,
-            });
-            // FIX: Type-check for 'body' property on dictionary entry before accessing it.
-            const loopsDefAfter = Yield.dictionary[':loops'];
+            
+            // Run is async only for the full interpreter
+            if (interpreterMode === 'yield') {
+                await YieldFull.run(program, sessionStack, { 
+                    onOutput: onSyncOutput,
+                    onAsyncOutput: handleAsyncOutput, // Pass the async handler
+                    historyManager: historyManagerRef.current,
+                    commandHistory: nextCommandHistory,
+                });
+            } else {
+                YieldMini.run(program, sessionStack, { onOutput: onSyncOutput });
+            }
+
+            const loopsDefAfter = currentInterpreter.dictionary[':loops'];
             const loopsAfter = (loopsDefAfter && 'body' in loopsDefAfter && Array.isArray(loopsDefAfter.body)) ? loopsDefAfter.body.length : 0;
             const hasStartedLiveLoop = loopsAfter > loopsBefore;
 
 
-            if (isHistoryCmd) {
-                const stateAfter = historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary);
+            if (isHistoryCmd && interpreterMode === 'yield') {
+                const stateAfter = historyManagerRef.current.createSnapshot(sessionStack, currentInterpreter.dictionary);
                 if (deepEqual(stateBefore, stateAfter)) {
                     // State did not change, but still show the command was run for good UX.
                     const newHistoryEntry: HistoryEntry = { type: 'command', command, output: `( ${sessionStack.map(yieldFormatter).join(' ')} )`, isError: false, id: historyIdCounter.current++ };
@@ -396,15 +454,20 @@ export const Repl = () => {
             }
             
             if (processedCmd === 'reset') {
-                 Yield.reset();
+                 currentInterpreter.reset();
                  sessionStack = [];
-                 historyManagerRef.current.clear();
-                 const initialSnapshot = historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary);
-                 historyManagerRef.current.add(initialSnapshot);
+                 if (interpreterMode === 'yield' && historyManagerRef.current) {
+                     historyManagerRef.current.clear();
+                     const initialSnapshot = historyManagerRef.current.createSnapshot(sessionStack, currentInterpreter.dictionary);
+                     historyManagerRef.current.add(initialSnapshot);
+                 }
             }
             
-            if (processedCmd !== 'undo' && processedCmd !== 'redo' && processedCmd !== 'again') {
-                const stateAfter = historyManagerRef.current.createSnapshot(sessionStack, Yield.dictionary);
+            if (interpreterMode === 'yield' && 
+                processedCmd !== 'undo' && processedCmd !== 'redo' && processedCmd !== 'again' &&
+                historyManagerRef.current
+            ) {
+                const stateAfter = historyManagerRef.current.createSnapshot(sessionStack, currentInterpreter.dictionary);
                 historyManagerRef.current.add(stateAfter);
             }
             
@@ -451,7 +514,7 @@ export const Repl = () => {
             }
             setDictionaryVersion(v => v + 1);
         }
-    }, [isGodMode, commandHistory, handleAsyncOutput]);
+    }, [isGodMode, commandHistory, handleAsyncOutput, currentInterpreter, interpreterMode]);
     
     const handleRun = useCallback(async (commandBlock: string) => {
         if (showWelcome) {
@@ -566,7 +629,7 @@ export const Repl = () => {
                         <div className="mb-2 whitespace-pre-wrap">
                             <div className="output-area text-gray-100">
                                 World Hello!
-                                <p className="text-gray-400 text-sm mt-1">Try typing `help` to see available commands. Press left and right to undo and redo.</p>
+                                <p className="text-gray-400 text-sm mt-1">Try typing `help` to see available commands. Press left and right to undo and redo. Try `mini` to switch to a minimal interpreter.</p>
                             </div>
                         </div>
                     )}
@@ -655,10 +718,11 @@ export const Repl = () => {
                     {isGodMode && (
                         <div className="flex-1 min-h-0">
                             <DictionaryView 
-                                dictionary={Yield.dictionary} 
-                                builtInKeys={Yield.builtInKeys} 
+                                dictionary={currentInterpreter.dictionary} 
+                                builtInKeys={currentInterpreter.builtInKeys} 
                                 version={dictionaryVersion} 
                                 onUpdate={handleDictionaryUpdate}
+                                interpreterMode={interpreterMode}
                             />
                         </div>
                     )}

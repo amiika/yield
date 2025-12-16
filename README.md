@@ -1,6 +1,8 @@
 # Yield
 
-Very much in progress. Concatenative live coding language that yields.
+AI assisted concatenative live coding language that yields.
+
+Inspired by FORTH and JOY programming languages as well as modern live coding pattern languages.
 
 ## Contribution
 
